@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   motion,
   useReducedMotion,
@@ -6,6 +6,21 @@ import {
   useSpring,
   useTransform,
 } from 'motion/react'
+
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window === 'undefined') return false
+    return window.matchMedia('(max-width: 767px)').matches
+  })
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const mq = window.matchMedia('(max-width: 767px)')
+    const handler = (e) => setIsMobile(e.matches)
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  }, [])
+  return isMobile
+}
 
 const orbs = [
   { size: 520, startX: -140, startY: -160, color: 'rgba(139, 92, 246, 0.42)', dur: 28, dir: 1 },
@@ -27,6 +42,7 @@ const springConfig = { stiffness: 60, damping: 20, mass: 0.6 }
 
 export default function Background() {
   const reduce = useReducedMotion()
+  const isMobile = useIsMobile()
   const ref = useRef(null)
   const { scrollY } = useScroll()
 
@@ -40,7 +56,7 @@ export default function Background() {
   const gridOpacity = useTransform(scrollY, [0, 600], [1, 0.55])
 
   useEffect(() => {
-    if (reduce) return
+    if (reduce || isMobile) return
     const el = ref.current
     if (!el) return
     let raf = 0
@@ -58,7 +74,7 @@ export default function Background() {
       window.removeEventListener('pointermove', onMove)
       cancelAnimationFrame(raf)
     }
-  }, [reduce])
+  }, [reduce, isMobile])
 
   return (
     <div
@@ -78,9 +94,9 @@ export default function Background() {
 
       <motion.div
         className="absolute inset-0 will-change-transform-opacity"
-        style={{ y: y1 }}
+        style={isMobile ? undefined : { y: y1 }}
       >
-        {orbs.slice(0, 2).map((o, i) => (
+        {(isMobile ? orbs.slice(0, 1) : orbs.slice(0, 2)).map((o, i) => (
           <motion.div
             key={i}
             className="absolute rounded-full blur-3xl"
@@ -92,10 +108,12 @@ export default function Background() {
               top: o.startY !== null ? o.startY : undefined,
               bottom: o.bottom,
               background: `radial-gradient(circle at center, ${o.color}, transparent 65%)`,
-              translate: `calc(var(--px) * ${24 * o.dir}px) calc(var(--py) * ${16 * o.dir}px)`,
+              translate: isMobile
+                ? undefined
+                : `calc(var(--px) * ${24 * o.dir}px) calc(var(--py) * ${16 * o.dir}px)`,
             }}
             animate={
-              reduce
+              reduce || isMobile
                 ? undefined
                 : {
                     x: [0, 48 * o.dir, -24 * o.dir, 0],
@@ -108,39 +126,41 @@ export default function Background() {
         ))}
       </motion.div>
 
-      <motion.div
-        className="absolute inset-0 will-change-transform-opacity"
-        style={{ y: y2 }}
-      >
-        {orbs.slice(2).map((o, i) => (
-          <motion.div
-            key={i}
-            className="absolute rounded-full blur-3xl"
-            style={{
-              width: o.size,
-              height: o.size,
-              left: o.startX !== null ? o.startX : undefined,
-              right: o.right,
-              top: o.startY !== null ? o.startY : undefined,
-              bottom: o.bottom,
-              background: `radial-gradient(circle at center, ${o.color}, transparent 65%)`,
-              translate: `calc(var(--px) * ${18 * o.dir}px) calc(var(--py) * ${12 * o.dir}px)`,
-            }}
-            animate={
-              reduce
-                ? undefined
-                : {
-                    x: [0, -32 * o.dir, 20 * o.dir, 0],
-                    y: [0, 24, -18, 0],
-                    scale: [1, 1.07, 0.96, 1],
-                  }
-            }
-            transition={{ duration: o.dur, repeat: Infinity, ease: 'easeInOut' }}
-          />
-        ))}
-      </motion.div>
+      {!isMobile && (
+        <motion.div
+          className="absolute inset-0 will-change-transform-opacity"
+          style={{ y: y2 }}
+        >
+          {orbs.slice(2).map((o, i) => (
+            <motion.div
+              key={i}
+              className="absolute rounded-full blur-3xl"
+              style={{
+                width: o.size,
+                height: o.size,
+                left: o.startX !== null ? o.startX : undefined,
+                right: o.right,
+                top: o.startY !== null ? o.startY : undefined,
+                bottom: o.bottom,
+                background: `radial-gradient(circle at center, ${o.color}, transparent 65%)`,
+                translate: `calc(var(--px) * ${18 * o.dir}px) calc(var(--py) * ${12 * o.dir}px)`,
+              }}
+              animate={
+                reduce
+                  ? undefined
+                  : {
+                      x: [0, -32 * o.dir, 20 * o.dir, 0],
+                      y: [0, 24, -18, 0],
+                      scale: [1, 1.07, 0.96, 1],
+                    }
+              }
+              transition={{ duration: o.dur, repeat: Infinity, ease: 'easeInOut' }}
+            />
+          ))}
+        </motion.div>
+      )}
 
-      {!reduce && (
+      {!reduce && !isMobile && (
         <motion.div
           className="absolute inset-0 will-change-transform-opacity"
           style={{ y: y3 }}

@@ -82,8 +82,8 @@ export default function HorizontalProofStrip() {
   return (
     <section className="mt-16 sm:mt-20">
       <motion.div
-        initial={{ opacity: 0, y: 28, filter: 'blur(8px)' }}
-        whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+        initial={{ opacity: 0, y: 28 }}
+        whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, amount: 0.3 }}
         transition={{ duration: 0.75, ease: [0.22, 1, 0.36, 1] }}
         className="mx-auto max-w-3xl text-center"
@@ -103,8 +103,8 @@ export default function HorizontalProofStrip() {
       </motion.div>
 
       <motion.div
-        initial={{ opacity: 0, y: 40, filter: 'blur(10px)' }}
-        whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+        initial={{ opacity: 0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, amount: 0.15 }}
         transition={{ duration: 0.85, ease: [0.22, 1, 0.36, 1] }}
         className="relative mt-10"

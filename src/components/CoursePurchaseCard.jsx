@@ -10,8 +10,8 @@ export default function CoursePurchaseCard({ course, index }) {
   return (
     <>
       <motion.article
-        initial={{ opacity: 0, y: 44, scale: 0.97, filter: 'blur(12px)' }}
-        whileInView={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
+        initial={{ opacity: 0, y: 44, scale: 0.97 }}
+        whileInView={{ opacity: 1, y: 0, scale: 1 }}
         viewport={{ once: true, amount: 0.2 }}
         transition={{
           delay: 0.05 + index * 0.06,

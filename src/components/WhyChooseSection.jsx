@@ -22,8 +22,8 @@ const pillars = [
 export default function WhyChooseSection() {
   return (
     <motion.section
-      initial={{ opacity: 0, y: 40, filter: 'blur(10px)' }}
-      whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+      initial={{ opacity: 0, y: 40 }}
+      whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.15, margin: '0px 0px -10% 0px' }}
       transition={{ duration: 0.85, ease: [0.22, 1, 0.36, 1] }}
       className="mt-16 will-change-transform-opacity sm:mt-20"
@@ -50,8 +50,8 @@ export default function WhyChooseSection() {
               {pillars.map(({ icon: Icon, title, body }, idx) => (
                 <motion.div
                   key={title}
-                  initial={{ opacity: 0, y: 18, filter: 'blur(6px)' }}
-                  whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                  initial={{ opacity: 0, y: 18 }}
+                  whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, amount: 0.3 }}
                   transition={{
                     delay: 0.08 * idx,

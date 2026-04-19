@@ -40,8 +40,8 @@ export default function CommunityCta() {
   return (
     <section className="mt-16 sm:mt-20">
       <motion.div
-        initial={{ opacity: 0, y: 40, scale: 0.97, filter: 'blur(10px)' }}
-        whileInView={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
+        initial={{ opacity: 0, y: 40, scale: 0.97 }}
+        whileInView={{ opacity: 1, y: 0, scale: 1 }}
         viewport={{ once: true, amount: 0.25 }}
         transition={{ duration: 0.85, ease: [0.22, 1, 0.36, 1] }}
         className="glass-panel relative overflow-hidden rounded-[32px] p-8 text-center will-change-transform-opacity sm:p-12"

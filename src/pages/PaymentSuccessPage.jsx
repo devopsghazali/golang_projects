@@ -7,6 +7,14 @@ import {
   Mail,
   PlayCircle,
 } from 'lucide-react'
+import Background from '../components/Background'
+import ThemeToggle from '../components/ThemeToggle'
+import Footer from '../components/Footer'
+import { GOOGLE_DRIVE_LINK, isPlaceholderMode } from '../lib/config'
+import { primaryCourse } from '../data/courses'
+
+const SUPPORT_EMAIL = 'kaif85725@gmail.com'
+const SUPPORT_YOUTUBE = 'https://www.youtube.com/@themkbhai'
 
 function YoutubeGlyph({ size = 12 }) {
   return (
@@ -21,14 +29,6 @@ function YoutubeGlyph({ size = 12 }) {
     </svg>
   )
 }
-import Background from '../components/Background'
-import ThemeToggle from '../components/ThemeToggle'
-import Footer from '../components/Footer'
-import { GOOGLE_DRIVE_LINK, isPlaceholderMode } from '../lib/config'
-
-const SUPPORT_EMAIL = 'kaif85725@gmail.com'
-const SUPPORT_YOUTUBE = 'https://www.youtube.com/@themkbhai'
-import { primaryCourse } from '../data/courses'
 
 const storageKey = 'cpamaster-last-purchase'
 
@@ -70,8 +70,8 @@ export default function PaymentSuccessPage() {
       <main className="relative mx-auto flex min-h-screen w-full max-w-2xl items-center px-5 py-14 sm:px-8">
         <div className="w-full">
           <motion.section
-            initial={{ opacity: 0, y: 32, filter: 'blur(12px)' }}
-            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+            initial={{ opacity: 0, y: 32 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.85, ease: [0.22, 1, 0.36, 1] }}
             className="glass-panel relative overflow-hidden rounded-[30px] p-6 sm:p-8"
           >

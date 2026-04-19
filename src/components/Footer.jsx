@@ -2,11 +2,10 @@ import { motion } from 'motion/react'
 import { Heart } from 'lucide-react'
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 18, filter: 'blur(6px)' },
+  hidden: { opacity: 0, y: 18 },
   show: {
     opacity: 1,
     y: 0,
-    filter: 'blur(0px)',
     transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] },
   },
 }

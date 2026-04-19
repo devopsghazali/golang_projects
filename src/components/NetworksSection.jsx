@@ -6,8 +6,8 @@ export default function NetworksSection() {
   return (
     <section className="mt-16 sm:mt-20">
       <motion.div
-        initial={{ opacity: 0, y: 28, filter: 'blur(8px)' }}
-        whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+        initial={{ opacity: 0, y: 28 }}
+        whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, amount: 0.3 }}
         transition={{ duration: 0.75, ease: [0.22, 1, 0.36, 1] }}
         className="mx-auto max-w-3xl text-center will-change-transform-opacity"
@@ -31,8 +31,8 @@ export default function NetworksSection() {
         {networks.map((network, index) => (
           <motion.article
             key={network.id}
-            initial={{ opacity: 0, y: 32, scale: 0.96, filter: 'blur(8px)' }}
-            whileInView={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
+            initial={{ opacity: 0, y: 32, scale: 0.96 }}
+            whileInView={{ opacity: 1, y: 0, scale: 1 }}
             viewport={{ once: true, amount: 0.25 }}
             transition={{
               delay: 0.09 * index,

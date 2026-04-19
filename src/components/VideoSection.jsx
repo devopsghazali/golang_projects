@@ -3,12 +3,11 @@ import { Play, Clock, Eye } from 'lucide-react'
 import { featuredVideo } from '../data/video'
 
 const revealVariants = {
-  hidden: { opacity: 0, y: 40, scale: 0.97, filter: 'blur(10px)' },
+  hidden: { opacity: 0, y: 40, scale: 0.97 },
   show: {
     opacity: 1,
     y: 0,
     scale: 1,
-    filter: 'blur(0px)',
     transition: { duration: 0.85, ease: [0.22, 1, 0.36, 1] },
   },
 }

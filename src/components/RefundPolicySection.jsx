@@ -28,8 +28,8 @@ export default function RefundPolicySection() {
   return (
     <section id="refund-policy" className="mt-16 scroll-mt-20 sm:mt-20">
       <motion.div
-        initial={{ opacity: 0, y: 28, filter: 'blur(8px)' }}
-        whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+        initial={{ opacity: 0, y: 28 }}
+        whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, amount: 0.3 }}
         transition={{ duration: 0.75, ease: [0.22, 1, 0.36, 1] }}
         className="mx-auto max-w-3xl text-center"

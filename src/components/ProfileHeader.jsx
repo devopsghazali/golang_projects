@@ -1,11 +1,10 @@
 import { motion } from 'motion/react'
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 22, filter: 'blur(8px)', scale: 0.96 },
+  hidden: { opacity: 0, y: 22, scale: 0.96 },
   show: {
     opacity: 1,
     y: 0,
-    filter: 'blur(0px)',
     scale: 1,
     transition: { duration: 0.75, ease: [0.22, 1, 0.36, 1] },
   },

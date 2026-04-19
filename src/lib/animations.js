@@ -10,53 +10,39 @@ export const viewportOnce = { once: true, amount: 0.15, margin: '0px 0px -10% 0p
 export const viewportLoose = { once: true, amount: 0.1, margin: '0px 0px -5% 0px' }
 
 export const fadeRise = {
-  hidden: { opacity: 0, y: 36, filter: 'blur(8px)' },
+  hidden: { opacity: 0, y: 28 },
   show: {
     opacity: 1,
     y: 0,
-    filter: 'blur(0px)',
-    transition: { duration: 0.75, ease: PREMIUM_EASE },
+    transition: { duration: 0.5, ease: PREMIUM_EASE },
   },
 }
 
 export const fadeRiseSmall = {
-  hidden: { opacity: 0, y: 20, filter: 'blur(6px)' },
+  hidden: { opacity: 0, y: 16 },
   show: {
     opacity: 1,
     y: 0,
-    filter: 'blur(0px)',
-    transition: { duration: 0.6, ease: PREMIUM_EASE },
+    transition: { duration: 0.4, ease: PREMIUM_EASE },
   },
 }
 
 export const fadeUp = {
-  hidden: { opacity: 0, y: 24 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.65, ease: PREMIUM_EASE } },
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.45, ease: PREMIUM_EASE } },
 }
 
 export const fadeScale = {
-  hidden: { opacity: 0, y: 24, scale: 0.97, filter: 'blur(6px)' },
+  hidden: { opacity: 0, y: 18, scale: 0.98 },
   show: {
     opacity: 1,
     y: 0,
     scale: 1,
-    filter: 'blur(0px)',
-    transition: { duration: 0.7, ease: PREMIUM_EASE },
+    transition: { duration: 0.5, ease: PREMIUM_EASE },
   },
 }
 
 export const sectionGroup = {
-  hidden: { opacity: 1 },
-  show: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.05,
-    },
-  },
-}
-
-export const listGroup = {
   hidden: { opacity: 1 },
   show: {
     opacity: 1,
@@ -67,14 +53,24 @@ export const listGroup = {
   },
 }
 
+export const listGroup = {
+  hidden: { opacity: 1 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.06,
+      delayChildren: 0.03,
+    },
+  },
+}
+
 export const cardItem = {
-  hidden: { opacity: 0, y: 28, scale: 0.97, filter: 'blur(6px)' },
+  hidden: { opacity: 0, y: 20, scale: 0.98 },
   show: {
     opacity: 1,
     y: 0,
     scale: 1,
-    filter: 'blur(0px)',
-    transition: { duration: 0.65, ease: PREMIUM_EASE },
+    transition: { duration: 0.45, ease: PREMIUM_EASE },
   },
 }
 
@@ -93,17 +89,15 @@ export const sectionStagger = {
 }
 
 export const pageEnter = {
-  initial: { opacity: 0, y: -48, filter: 'blur(10px)' },
+  initial: { opacity: 0, y: -24 },
   animate: {
     opacity: 1,
     y: 0,
-    filter: 'blur(0px)',
-    transition: { duration: 0.7, ease: CINEMATIC_EASE },
+    transition: { duration: 0.45, ease: CINEMATIC_EASE },
   },
   exit: {
     opacity: 0,
-    y: -24,
-    filter: 'blur(6px)',
-    transition: { duration: 0.4, ease: PREMIUM_EASE },
+    y: -12,
+    transition: { duration: 0.25, ease: PREMIUM_EASE },
   },
 }

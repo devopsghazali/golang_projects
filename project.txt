@@ -1330,5 +1330,111 @@ USER KO YAAD DILANA:
     me manual run karni thi).
 
 ================================================================
+SESSION — 2026-04-20 (Secure success + UX polish + legal refund)
+================================================================
+
+CONTEXT:
+  User was testing Razorpay checkout on cpamaster.online. Found
+  that direct URL /#/success opens success page WITHOUT paying
+  (security gap). Also asked for big UX + legal polish:
+  simpler success UI, top-position recent buyer popup, premium
+  trust card, English refund policy with MkBhai signature,
+  remove ALL YouTube mentions from refund flow.
+
+1. SUCCESS PAGE ACCESS CONTROL (critical fix):
+  File: src/pages/PaymentSuccessPage.jsx
+  - Replaced readPurchase() with readVerifiedPurchase() — ONLY
+    returns object when:
+      * data param decodes to {status:'verified', razorpayPaymentId:...}
+      * OR localStorage[cpamaster-last-purchase] has same + createdAt
+        within last 24 hrs
+  - If no verified purchase → <Navigate to="/join-courses" replace />
+  - Removed isPlaceholderMode() fallback (no fake access).
+  - Also simplified whole UI:
+      * Title: "Payment Successful"
+      * Subtitle: "Your access is ready."
+      * 2-line body: Drive access + WhatsApp/Email support
+      * 1 big button: "Open Google Drive Access"
+      * Two small buttons: WhatsApp Support + Email Support
+      * No course card, no placeholder banner, no YouTube.
+  - Stacking gate: ApplyNowModal now stamps verified purchase
+    with {status:'verified', createdAt: ISO} BEFORE saving to
+    localStorage / encoding to URL param. Backend verify_payment
+    response does NOT include status field, so the frontend
+    adds it based on the successful HMAC+amount-verified path.
+
+2. RECENT BUYERS POPUP (RecentBuyersPopup.jsx):
+  - Was: bottom-left, hidden on mobile, heavy glass panel.
+  - Now: top-center pill, VISIBLE on mobile too, light shadow,
+    small rounded-full layout, 5.2s rotate (was 4.2s).
+  - Only shows if backend returns ≥1 verified buyer. Empty
+    returns null — no clutter.
+  - Text format: "Hn*** from India joined CPA MASTERY" (backend
+    already masks + hardcodes India per project requirements).
+  - Removed BadgeCheck + ShoppingBag double icons; now single
+    BadgeCheck in 6x6 emerald circle.
+  - Lint false-positive: 'motion' unused warning — IDE can't
+    detect motion.div JSX namespace usage. Build passes clean.
+
+3. EARNINGS TRUST CARD (new component):
+  File: src/components/EarningsTrustCard.jsx
+  - Gradient emerald/cyan/blue premium card.
+  - "Earnings from First Day" heading + short conversion copy.
+  - 3 pillars: Same-day setup / First payout in 24hrs /
+    Verified student results (icon + label).
+  - Slotted in JoinCoursesPage between HorizontalProofStrip
+    and WhyChooseSection.
+
+4. REFUND POLICY REWRITE (RefundPolicySection.jsx):
+  English clauses — exact structure user specified:
+    1. No Refund (Basic Rule)
+    2. Refund Allowed Only in Rare Cases
+    3. Support  — also renders email button under clause
+    4. Policy Changes
+  Header: "CPA MASTER — Refund & Cancellation Policy"
+  Bottom left: CPA MASTER + email (kaif85725@gmail.com)
+  Bottom right: Handwritten signature "MkBhai" + "Authorised
+  Signatory" label.
+  REMOVED:
+  - Vertical rose-400/40 line (left:12 top:0 h-full w-px) —
+    was a green/rose line behind the signature.
+  - ALL YouTube mentions (youtube.com/@themkbhai link gone).
+  - Hinglish Refund body copy — now clean English.
+
+5. SIGNATURE FONT:
+  - index.html: added Dancing Script family (weights 600, 700)
+    to the existing Google Fonts URL.
+  - RefundPolicySection uses inline
+    fontFamily: "Dancing Script",... cursive stack with -4deg
+    rotation for handwritten feel. Dancing Script loads remote;
+    Brush Script / Segoe Script / Lucida Handwriting as local
+    fallbacks.
+
+6. BUILD + PUSH:
+  - npm run build → 2158 modules, 448.96 KB JS, no errors.
+  - Commit "secure success page + simplify UX + premium refund
+    policy" (7 files, +211/-170, 1 new component).
+  - Pushed to origin/main → Vercel auto-redeploy trigger.
+
+RAZORPAY TEST GUIDANCE (given to user earlier in chat):
+  - Test mode QR does NOT work with real UPI apps. Use UPI ID
+    "success@razorpay" or "failure@razorpay" typed into the
+    UPI ID field in the Razorpay popup.
+  - Razorpay test cards (not Stripe's generic):
+      Visa success:   4386 2894 0766 0153
+      MC success:     5104 0600 0000 0008
+      Visa failure:   4012 0010 3714 1112
+    Any future expiry, any 3-digit CVV, OTP 123456.
+  - "International cards not supported" is a Razorpay account
+    setting — not a code issue.
+
+USER KO YAAD DILANA:
+  - Vercel redeploy verify karo. Fir /#/success direct hit
+    karo bina payment — /join-courses par redirect hona chahiye.
+  - Real payment (test or live) ke baad success page khulega
+    sirf us session me. localStorage 24 hrs ka window hai.
+  - DB migration + Razorpay webhook abhi bhi pending.
+
+================================================================
   End of project.txt
 ================================================================

@@ -69,7 +69,7 @@ export const links = [
     number: '06',
     title: 'Clear Doubts With Me',
     subtitle: 'Personal 1-on-1 chat',
-    href: 'https://chat.whatsapp.com/IWyGJtc47U997DONukzHEO',
+    href: 'https://wa.me/917905523824',
     icon: MessageCircle,
     fill: 'linear-gradient(110deg,#0891b2,#06b6d4 55%,#22d3ee)',
     iconBg: 'linear-gradient(135deg,#22d3ee,#0891b2)',

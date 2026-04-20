@@ -1,2 +1,93 @@
+================================================================
+  PROJECT.TXT — CPA MASTERY WORK LOG (Hinglish)
+================================================================
+  (Old log cleared by user; starting fresh from 2026-04-20.
+  Full reference doc: projectv2.txt)
 
+================================================================
+SESSION — 2026-04-20 (Part B — Go Live + Video Hero + Popup v2)
+================================================================
+
+1. COUPON DB MIGRATION (RUN LIVE):
+  - Supabase Management API se 20260420_coupon_system.sql
+    execute ki (curl POST /v1/projects/<ref>/database/query)
+  - 3 new tables created: coupons, coupon_redemptions,
+    coupon_audit_log
+  - course_purchases me 4 new columns added (coupon_code,
+    discount_amount, original_amount, coupon_redemption_id)
+  - RLS enabled on all 3 new tables (zero policies = service
+    role only)
+  - 4 RPCs live: preview_coupon, try_reserve_coupon,
+    confirm_coupon_reservation, release_coupon_reservation
+
+2. ADMIN_API_TOKEN SET:
+  - 64-char random hex via node crypto
+    (90774377a9de...a05d4b0)
+  - supabase secrets set ADMIN_API_TOKEN=... — finished ok
+  - /admin panel ab fully functional
+  - TOKEN USER KO DIYA (chat me): is chat ke end me dekho,
+    passwd manager me save kar lo
+
+3. RAZORPAY LIVE KEYS (pichhli session se):
+  - RAZORPAY_KEY_ID = rzp_live_SfF1mWDHWU4zSt (already live)
+  - RAZORPAY_KEY_SECRET set
+  - Payments LIVE mode me chal rahe hain
+
+4. RECENT BUYERS POPUP FIX:
+  - Backend (recent_buyers edge fn): maskName() hataya
+    (Hn*** → full clean name)
+  - Frontend (RecentBuyersPopup.jsx): relativeTime display
+    add kiya (" · 5 mins ago" format)
+  - Edge function deployed via `supabase functions deploy
+    recent_buyers --no-verify-jwt`
+
+5. VIDEO HERO (main landing page):
+  - New component VideoHero.jsx add kiya
+  - Cloudinary URL: res.cloudinary.com/di6hn9fwh/video/upload/
+    v1776655695/lv_0_20260419215035_lsnfbh.mp4
+  - Poster: same path with /so_1.5,w_1280,q_auto,f_jpg/
+    transform → thumbnail
+  - Layout: aspect-video big box, rounded-3xl, gradient glow
+  - Play button: white circle with animated ping ring
+  - Click → setPlaying(true) → real <video autoPlay controls>
+    swap (unmuted first, fallback muted if browser blocks)
+  - Position: LinksSection ke top pe (above "Start here"
+    header), so "Join Course" ke turant upar dikhta hai
+    dono mobile aur desktop pe
+
+6. LINKS UPDATES:
+  - Instagram (links.js): already correct
+    (instagram.com/the_mkbhai?igsh=...)
+  - "Clear Doubts With Me" (1:1 personal chat) ab
+    wa.me/917905523824 pe point karta hai (pehle community
+    group link tha — galat tha)
+  - PaymentSuccessPage WhatsApp: wa.me/917905523824
+    (pehle hi updated mila)
+  - Email everywhere: kaif829974@gmail.com
+    (pehle hi updated mila)
+
+7. BUILD + DEPLOY:
+  - npm run build: 2167 modules, 484.41 KB JS
+    (149.37 KB gzip), 94.48 KB CSS (13.71 KB gzip)
+  - Commit + push pending (is update ke baad)
+
+8. LIVE READINESS CHECK — "real users le aaye kya?":
+  ✓ Razorpay LIVE keys set
+  ✓ Coupon system DB + RPCs live
+  ✓ ADMIN_API_TOKEN set → /admin login working
+  ✓ Buyer popup full names + time
+  ✓ Video hero live
+  ✓ Support email + 1:1 WhatsApp wired
+  ⚠ PENDING (user decision):
+    - Rotate leaked Razorpay live keys (repo public)
+    - Rotate Supabase access token (chat me shared)
+    - First real purchase karke end-to-end validate karo
+      (Drive unlock + Razorpay dashboard me captured entry)
+    - Admin token lock-in karo (password manager)
+    - Pehla coupon /admin se banao (e.g. LAUNCH20, 20 seats)
+  Verdict: technically LIVE-READY. Ek real test purchase
+  karo 1 cheap course se, phir full launch.
+
+================================================================
+  End of project.txt  (see projectv2.txt for reference doc)
 ================================================================

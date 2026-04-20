@@ -1,5 +1,6 @@
 import { motion } from 'motion/react'
 import LinkCard from './LinkCard'
+import VideoHero from './VideoHero'
 import { links } from '../data/links'
 
 const groupVariants = {
@@ -29,6 +30,8 @@ export default function LinksSection() {
       aria-label="Primary links"
       className="w-full"
     >
+      <VideoHero />
+
       <motion.header
         variants={headerVariants}
         className="mb-5 flex items-end justify-between gap-4 will-change-transform-opacity"

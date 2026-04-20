@@ -1,0 +1,221 @@
+================================================================
+  CPA MASTERY — PROJECT v2 QUICK REFERENCE
+  (short summary + security checklist + flow map)
+  Last updated: 2026-04-20  |  Status: LIVE on cpamaster.online
+================================================================
+
+1. KYA BANAYA HAI (in one page)
+----------------------------------------------------------------
+  Website:     cpamaster.online (React 19 + Vite + Tailwind v4)
+  Stack:       Frontend = React | Backend = Supabase (Postgres
+               + Edge Functions) | Payments = Razorpay | Hosting
+               = Vercel | Repo = github.com/devopsghazali/cpamaster
+  Pages:
+    /                  Landing (hero, courses, testimonials, FAQ)
+    /join-courses      Course purchase cards + coupon banner
+    /free-guide        Free PDF/Drive lead magnet
+    /success           Post-payment Drive access page (protected)
+    /admin             Coupon manager (token-gated)
+
+  Main flows:
+    A) PAYMENT:   User → ApplyNowModal → create_order edge fn →
+                  Razorpay checkout → verify_payment edge fn →
+                  /success with Drive link
+    B) COUPON:    User types code → validate_coupon (preview)
+                  → apply → reserved at create_order (30-min hold)
+                  → confirmed at verify_payment (used_count++)
+    C) ADMIN:     /admin login (ADMIN_API_TOKEN) →
+                  CouponForm/List (CRUD) → admin_coupons edge fn
+                  → audit_log row per write
+
+  Live integrations:
+    - Razorpay LIVE keys active (rzp_live_SfF1mWDHWU4zSt)
+    - Supabase project: orrozpaelhogpqemngfj
+    - Support: kaif829974@gmail.com | wa.me/917905523824
+
+----------------------------------------------------------------
+2. SECURITY — KYA KHYAL RAKHNA HAI
+----------------------------------------------------------------
+
+  [A] SECRETS (never expose these):
+      - RAZORPAY_KEY_SECRET       — Supabase secrets only
+      - RAZORPAY_WEBHOOK_SECRET   — Supabase secrets only
+      - SUPABASE_SERVICE_ROLE_KEY — Supabase secrets only
+      - ADMIN_API_TOKEN           — Supabase secrets only
+      - Supabase access token     — your dashboard only
+      Public-safe: VITE_SUPABASE_URL, VITE_SUPABASE_PUBLISHABLE_KEY,
+                   RAZORPAY_KEY_ID (rzp_live_*)
+
+  [B] KNOWN LEAK (must rotate):
+      project.txt line 1313-1314 me LIVE Razorpay keys commited
+      hain + repo public hai. Git history permanent.
+      ROTATE: Razorpay Dashboard → Settings → API Keys →
+      Regenerate Live Key → naya KEY_ID + KEY_SECRET Supabase
+      secrets me set karo.
+
+      Supabase access token bhi is chat me plaintext aaya —
+      https://supabase.com/dashboard/account/tokens pe jaake
+      purana revoke karo, naya banao.
+
+  [C] BUILT-IN GUARDS (already active):
+      - RLS enabled on all Postgres tables (zero policies = anon
+        gets nothing; edge functions use service role)
+      - HMAC-SHA256 signature check on every Razorpay webhook
+      - Amount tamper guard: verify_payment expected amount DB
+        se reads, frontend se nahi
+      - Race-safe coupon reservation (SELECT FOR UPDATE +
+        30-min expiry ledger)
+      - Rate limits: 20/min validate_coupon, 30/min create_order,
+        120/min admin_coupons per IP
+      - Admin auth: constant-time safeEqual check on
+        ADMIN_API_TOKEN; 16+ char minimum
+      - sessionStorage (not localStorage) for admin token —
+        cleared on tab close
+      - /success route guard: only renders if verified purchase
+        payload present (URL-data or localStorage <24h)
+
+  [D] ONGOING HYGIENE:
+      - Rotate Razorpay keys quarterly (or on any suspected leak)
+      - Rotate ADMIN_API_TOKEN monthly
+      - Never paste secrets in chats / screenshots / PRs
+      - .env.local is gitignored — confirm before every commit
+      - Check supabase secrets list digest changes after every
+        rotation to confirm it actually updated
+
+----------------------------------------------------------------
+3. DASHBOARDS JAHAN JAA KE CHECK KARNA HAI
+----------------------------------------------------------------
+
+  [1] RAZORPAY  (razorpay.com/app/dashboard)
+      - Payments tab — live transactions dikhein (status: captured)
+      - Orders tab — har create_order call yahan entry banata hai
+      - Webhooks — https://orrozpaelhogpqemngfj.functions.supabase
+                   .co/razorpay_webhook configured hona chahiye
+      - Settings → API Keys — live keys active (rotate yahan se)
+      - Check: 1 real test purchase se captured status aaye
+
+  [2] SUPABASE  (supabase.com/dashboard/project/orrozpaelhogpqemngfj)
+      - Table Editor:
+          course_purchases    — har payment attempt row
+          coupons             — active coupons list
+          coupon_redemptions  — reserved/confirmed/cancelled ledger
+          coupon_audit_log    — admin actions trail
+          (all tables RLS on — confirm in Auth → Policies)
+      - Edge Functions:
+          create_order, verify_payment, razorpay_webhook,
+          validate_coupon, admin_coupons → all "Deployed"
+      - Logs (Functions → <name> → Logs) — errors check karo
+      - Secrets (Settings → Edge Functions → Secrets) —
+          all 9 entries present (check digest list)
+      - SQL Editor — agar migration run nahi hui to yahan se
+          20260420_coupon_system.sql chalao
+
+  [3] VERCEL  (vercel.com/dashboard)
+      - Deployments — har GitHub push ka auto-deploy
+      - Environment Variables (Production):
+          VITE_SUPABASE_URL
+          VITE_SUPABASE_PUBLISHABLE_KEY
+          VITE_PAYMENT_MODE=live
+          VITE_BRAND_NAME
+          VITE_GOOGLE_DRIVE_LINK (fallback only)
+          VITE_SUPPORT_PHONE (optional)
+          VITE_FEATURED_COUPON (optional — promo banner)
+      - Domain: cpamaster.online configured & SSL active
+
+  [4] GITHUB  (github.com/devopsghazali/cpamaster)
+      - Repo status: PUBLIC (planned private eventually)
+      - Main branch: auto-deploys to Vercel
+      - Latest commit on main should match local HEAD
+      - Actions tab (agar workflow use kar rahe ho) — green ticks
+
+  [5] /ADMIN PANEL  (cpamaster.online/admin)
+      - Login with ADMIN_API_TOKEN (from Supabase secrets)
+      - Can: create/edit/delete/toggle coupons, see stats
+      - Every write logs to coupon_audit_log
+
+  [6] RAZORPAY WEBHOOK SECRET
+      Razorpay Dashboard → Webhooks → event checklist:
+        payment.captured, payment.failed, order.paid
+      Webhook endpoint must return 200 within 5s.
+
+----------------------------------------------------------------
+4. FULL FLOW MAP — TOOLS INVOLVED PER FLOW
+----------------------------------------------------------------
+
+  USER BUYS COURSE:
+    Browser  → React (ApplyNowModal)
+             → fetch (create_order edge fn)
+             → Supabase (insert course_purchases, reserve coupon)
+             → Razorpay orders.create API
+             → Razorpay Checkout (script loaded in browser)
+             → User enters card/UPI
+             → Razorpay captures payment
+             → Browser handler → verify_payment edge fn
+             → HMAC signature verify + amount check
+             → Supabase (update purchase status=verified,
+               confirm_coupon_reservation)
+             → Redirect /success with encoded payload
+             → User clicks Drive link → Google Drive access
+
+  COUPON APPLY:
+    Browser  → CouponInput
+             → validate_coupon edge fn (preview, rate-limited)
+             → Supabase preview_coupon RPC
+             → UI shows discount + remaining slots
+             → On purchase, try_reserve_coupon RPC locks seat
+               (SELECT FOR UPDATE, 30-min hold)
+             → Payment success → confirm_coupon_reservation
+               (used_count++)
+             → Payment fail/abandon → release after 30 min
+               (lazy cleanup) or explicit release call
+
+  ADMIN MANAGES COUPONS:
+    Browser  → AdminLogin (token in sessionStorage)
+             → adminRequest('list'|'create'|'update'|
+                'delete'|'toggle'|'stats')
+             → admin_coupons edge fn
+             → assertAdmin (safeEqual check)
+             → Supabase direct SQL (service role)
+             → coupon_audit_log insert per write
+             → UI refresh
+
+  PAYMENT WEBHOOK (async backup):
+    Razorpay → razorpay_webhook edge fn (HMAC verify)
+             → Supabase update purchase (idempotent)
+    This is the safety net if user closes browser mid-verify.
+
+----------------------------------------------------------------
+5. QUICK DEBUG COMMANDS
+----------------------------------------------------------------
+
+  # Check live secrets present (no values shown, only digests)
+  supabase secrets list --project-ref orrozpaelhogpqemngfj
+
+  # Tail edge function logs
+  supabase functions logs create_order --project-ref orrozpaelhogpqemngfj
+  supabase functions logs verify_payment --project-ref orrozpaelhogpqemngfj
+
+  # Redeploy a single function
+  supabase functions deploy create_order --project-ref orrozpaelhogpqemngfj
+
+  # Build locally
+  cd website_react && npm run build
+
+  # Run SQL migration manually (copy file content to
+  # Supabase Dashboard → SQL Editor and run):
+  website_react/supabase/migrations/20260420_coupon_system.sql
+
+----------------------------------------------------------------
+6. WEAK SPOTS / TODO (non-urgent)
+----------------------------------------------------------------
+  - ROTATE live Razorpay keys (leaked in project.txt history)
+  - Rotate Supabase access token (leaked in chat)
+  - Make GitHub repo private (settings → danger zone)
+  - Add monitoring (Sentry or similar) for edge function errors
+  - Set up Razorpay webhook retry policy verification
+  - Add email confirmation (SendGrid/Resend) post-payment —
+    currently only Drive link + WhatsApp/Email support shown
+
+================================================================
+  End of projectv2.txt
+================================================================

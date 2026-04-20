@@ -123,5 +123,71 @@ SESSION — 2026-04-20 (Part C — /admin "Failed to fetch" FIX)
     rakhna sahi rahega (cheap, koi behavior nahi badalti).
 
 ================================================================
+SESSION — 2026-04-20 (Part D — Public Repo Security Hardening)
+================================================================
+
+13. DEPLOYED CORS FIX (Part C se):
+  - User ne sbp_bea856... access token chat me diya
+  - Is token se admin_coupons + create_order + verify_payment
+    + validate_coupon + razorpay_webhook + recent_buyers sab
+    redeploy kar diye (naya CORS live)
+  - /admin pe token ab kaam karega (verified ready)
+
+14. PUBLIC REPO SECURITY AUDIT karaya:
+
+  REAL LEAKS (jo fix karne chahiye):
+  a) Google Drive folder link hard-coded tha:
+     - src/lib/config.js (GOOGLE_DRIVE_LINK default)
+     - supabase/functions/_shared/courses.ts (driveLink default)
+     Matlab GitHub par koi bhi jaake link copy karke course
+     bina payment ke dekh sakta tha. BADA hole tha.
+  b) sbp_bea856dc3dd13dfd1021c6968e997611d26c40a5 user ne
+     chat me share kiya — logs me save ho gaya, rotate karna
+     zaroori.
+  c) Razorpay live KEY_ID (rzp_live_Sf...) project.txt me
+     commit hua tha, lekin ye public-by-design hai (Stripe
+     pk_live_ jaisa) — KEY_SECRET safe (Supabase secrets me).
+
+  FIX APPLIED:
+  - courses.ts: driveLink = Deno.env.get('CPA_MASTERY_DRIVE_URL')
+    || '' (fallback URL hata diya)
+  - config.js: GOOGLE_DRIVE_LINK = env var || '' (fallback hata)
+  - CPA_MASTERY_DRIVE_URL Supabase secrets me already set hai
+    (Management API se verify kiya)
+  - verify_payment + razorpay_webhook + create_order +
+    validate_coupon redeploy kiye (courses.ts affect karta hai)
+
+  NOT A LEAK (ye chize safe hain public repo me):
+  - SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY (anon) — public
+    by design, RLS protects data
+  - Edge function source code — logic visible hai but auth
+    service-role se server-side hoti hai
+  - Migration SQL — schema visible, but RLS locks data
+  - Truncated admin token ("90774377...a05d4b0") project.txt
+    me — middle 47 chars hidden, brute-force impossible
+
+  ALREADY SAFE (kabhi repo me nahi aaye, verified via
+  `git log --all -p`):
+  - SUPABASE_SERVICE_ROLE_KEY
+  - RAZORPAY_KEY_SECRET
+  - RAZORPAY_WEBHOOK_SECRET
+  - ADMIN_API_TOKEN (full value)
+  - CPA_MASTERY_DRIVE_URL
+
+15. USER ACTION ITEMS (abhi pending):
+  ⚠ sbp_bea856... access token revoke + rotate (Supabase
+     dashboard → Account → Access Tokens)
+  ⚠ Drive folder rotate: purani folder sharing "Restricted"
+     karo ya naya folder banao, phir
+     `supabase secrets set CPA_MASTERY_DRIVE_URL=<new_link>`
+     Purana link git history me hamesha ke liye rahega
+     (history rewrite kiye bina)
+  ⚠ Razorpay keys rotate — peace-of-mind ke liye (strict
+     requirement nahi, KEY_ID public-by-design hai)
+  ⚠ Long-term: per-buyer Drive access via Google Drive API
+     (verify_payment me buyer ke email ko reader grant)
+     — tabhi link leak bhi ho jaaye to useless rahega
+
+================================================================
   End of project.txt  (see projectv2.txt for reference doc)
 ================================================================

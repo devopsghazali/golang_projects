@@ -7,9 +7,7 @@ export const SUPABASE_PUBLISHABLE_KEY =
 
 export const BRAND_NAME = import.meta.env.VITE_BRAND_NAME || 'CPAMaster'
 
-export const GOOGLE_DRIVE_LINK =
-  import.meta.env.VITE_GOOGLE_DRIVE_LINK ||
-  'https://drive.google.com/drive/folders/1FYD-fUr22h8gsHdiWbLPLLZNQMxvlx-9'
+export const GOOGLE_DRIVE_LINK = import.meta.env.VITE_GOOGLE_DRIVE_LINK || ''
 
 export const PAYMENT_MODE =
   (import.meta.env.VITE_PAYMENT_MODE || 'live').toLowerCase()

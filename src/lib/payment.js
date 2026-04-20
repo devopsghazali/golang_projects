@@ -33,7 +33,14 @@ export function createOrder(payload) {
       'Razorpay is not connected yet. Switch VITE_PAYMENT_MODE to "live" after deploying the create_order edge function.',
     )
   }
-  return invokeEdgeFunction('create_order', payload)
+  const body = {
+    courseId: payload.courseId,
+    customer: payload.customer,
+  }
+  if (payload.couponCode) {
+    body.couponCode = payload.couponCode
+  }
+  return invokeEdgeFunction('create_order', body)
 }
 
 export function verifyPayment(payload) {

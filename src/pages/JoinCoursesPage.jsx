@@ -4,6 +4,7 @@ import Background from '../components/Background'
 import ThemeToggle from '../components/ThemeToggle'
 import RecentBuyersPopup from '../components/RecentBuyersPopup'
 import CoursePurchaseCard from '../components/CoursePurchaseCard'
+import CouponPromoBanner from '../components/CouponPromoBanner'
 import WhyChooseSection from '../components/WhyChooseSection'
 import NetworksSection from '../components/NetworksSection'
 import HorizontalProofStrip from '../components/HorizontalProofStrip'
@@ -36,7 +37,11 @@ export default function JoinCoursesPage() {
           </span>
         </div>
 
-        <section id="courses" className="mt-12 scroll-mt-20 sm:mt-16">
+        <div className="mx-auto max-w-3xl">
+          <CouponPromoBanner />
+        </div>
+
+        <section id="courses" className="mt-8 scroll-mt-20 sm:mt-12">
           <div className="mx-auto mt-2 grid max-w-3xl gap-6">
             {courses.map((course, index) => (
               <CoursePurchaseCard key={course.id} course={course} index={index} />

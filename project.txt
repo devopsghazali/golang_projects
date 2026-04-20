@@ -1436,5 +1436,269 @@ USER KO YAAD DILANA:
   - DB migration + Razorpay webhook abhi bhi pending.
 
 ================================================================
+SESSION — 2026-04-20 (Coupon Code System — full production stack)
+================================================================
+
+CONTEXT:
+  User ne bola: CPA MASTERY ke liye ek proper production-grade
+  coupon code system banana hai. Requirements:
+    - Shared coupon system (admin ek code banaye, sab use karein)
+    - Usage limit (e.g. "first 20 buyers")
+    - Expiry timer (date/time based)
+    - Admin-protected dashboard (/admin route, hidden)
+    - Supabase backend (coupons table + redemptions + audit log)
+    - Strict security (RLS, service role only, rate limiting)
+    - Checkout UI: coupon input + price breakdown (original,
+      discount, final)
+    - Promo banner/popup (optional conversion booster)
+    - Kabhi bhi frontend se coupon create/edit NAHI ho sakta
+
+ARCHITECTURE SUMMARY:
+
+  TABLES (new migration: 20260420_coupon_system.sql)
+    a) coupons
+         id, code (ci-unique), discount_value, discount_type
+         (fixed/percentage), max_users, used_count, min_amount,
+         expiry_date, status (active/inactive), notes, created_by,
+         created_at, updated_at. Trigger auto-bumps updated_at.
+    b) coupon_redemptions (ledger)
+         coupon_id, coupon_code, purchase_id, customer_email,
+         discount_amount, status (reserved/confirmed/cancelled),
+         expires_at, confirmed_at. Unique on purchase_id to
+         prevent double-apply per order.
+    c) coupon_audit_log
+         coupon_id, coupon_code, action (created/updated/
+         activated/deactivated/deleted), actor, metadata jsonb.
+    d) course_purchases (extended, not recreated)
+         added: coupon_code, discount_amount, original_amount,
+         coupon_redemption_id.
+    RLS enabled on all 3 new tables with ZERO policies — anon /
+    authenticated clients cannot read or write. Only service-role
+    edge functions access them.
+
+  RPC FUNCTIONS (SECURITY DEFINER):
+    preview_coupon(code, email, cart_amount) — read-only check
+        (used by validate_coupon edge fn). Returns ok + discount
+        + remaining_slots. Does NOT reserve.
+    try_reserve_coupon(code, email, cart_amount, hold_minutes)
+        — race-safe: SELECT FOR UPDATE on coupon row, checks
+        all gates, inserts redemption (status=reserved,
+        expires_at=now+30min). Returns redemption_id + discount.
+    confirm_coupon_reservation(redemption_id, purchase_id)
+        — marks reserved → confirmed, bumps used_count,
+        idempotent (already_confirmed flag if re-called).
+    release_coupon_reservation(redemption_id)
+        — reserved → cancelled. Used on checkout failure in
+        create_order's catch block.
+    max_users ke check me reserved (non-expired) + confirmed
+    dono count hote hain, race-safe.
+
+  EDGE FUNCTIONS (new + modified):
+    1) validate_coupon (new, public)
+         - Rate limit: 20/min per IP (in-memory sliding window)
+         - Input: code + courseId + customerEmail (optional)
+         - Returns: discountAmount, finalAmount, remainingSlots
+         - Pure preview, no side effects.
+    2) admin_coupons (new, admin-only)
+         - Guard: x-admin-token header must safeEqual
+           ADMIN_API_TOKEN env (length check + constant-time).
+         - Rate limit: 120/min per IP (brute-force defense).
+         - Actions: list / stats / create / update / delete /
+           toggle. All writes log to coupon_audit_log.
+         - Code validation: /^[A-Z0-9_-]{3,32}$/.
+         - Percentage cap 100, max_users must be > 0, etc.
+    3) create_order (modified)
+         - Accepts optional couponCode.
+         - Calls try_reserve_coupon → gets discount → uses
+           finalAmount (course.amount - discount) for Razorpay
+           order.
+         - Stores original_amount, discount_amount, coupon_code,
+           coupon_redemption_id on course_purchases row.
+         - On any failure after reserve: release_coupon_reservation.
+         - Rate limit: 30/min per IP.
+         - 100% off scenario rejected (final ≤ 0 — Razorpay
+           mandate).
+    4) verify_payment (modified)
+         - Reads expected amount from purchase row (not course
+           catalog) — now coupon-aware.
+         - Payment amount must match purchase.amount exactly.
+         - After HMAC+amount verified: confirm_coupon_reservation
+           (non-blocking on error, logs but continues).
+         - Response includes originalAmount, discountAmount,
+           couponCode for success page.
+
+  SHARED HELPERS:
+    supabase/functions/_shared/
+      rateLimit.ts  — in-memory Map on globalThis, per-key
+                      sliding window. clientIpFromRequest()
+                      reads x-forwarded-for / x-real-ip /
+                      cf-connecting-ip.
+      admin.ts      — assertAdmin() throws AdminAuthError(401)
+                      unless ADMIN_API_TOKEN (len≥16) matches
+                      x-admin-token via safeEqual. Returns
+                      actor handle from x-admin-actor for audit.
+
+FRONTEND CHANGES:
+
+  a) src/lib/coupon.js (new)
+     - validateCoupon({code, courseId, customerEmail}) → calls
+       validate_coupon edge fn. Throws on 429/5xx, returns
+       data on 200 (even if ok=false).
+     - formatRupees(paise) helper — ₹1,899 format with
+       en-IN locale.
+
+  b) src/lib/admin.js (new)
+     - sessionStorage-backed admin token (TOKEN_KEY,
+       ACTOR_KEY). Cleared when tab closes or on 401.
+     - adminRequest(action, payload) attaches x-admin-token +
+       x-admin-actor headers to admin_coupons edge fn.
+
+  c) src/lib/payment.js (modified)
+     - createOrder() now forwards payload.couponCode when
+       present.
+
+  d) src/components/CouponInput.jsx (new)
+     - "Have a coupon code?" section. Input + Apply button.
+     - On apply: calls validateCoupon, shows applied chip
+       (code + discount + remaining slots) with × to clear.
+     - Uppercase / trimmed / 32-char max, Enter key submits.
+     - Handles server error messages inline.
+
+  e) src/components/ApplyNowModal.jsx (modified)
+     - Integrated CouponInput (only in live mode — placeholder
+       mode skips it since no backend).
+     - Price breakdown box: Original Price (strikethrough if
+       coupon), Coupon (-₹), Final Price.
+     - Submit button label uses finalAmount: "Join Now – ₹1899".
+     - If backend rejects coupon at create_order, UI drops it
+       and shows error (so user can retry without stale code).
+     - max-h-[92vh] + overflow-y-auto so longer form scrolls
+       cleanly on small phones.
+
+  f) src/components/CouponPromoBanner.jsx (new)
+     - Controlled by VITE_FEATURED_COUPON env (empty = hidden).
+     - On mount: calls validateCoupon (email blank) to confirm
+       coupon is still active. If invalid, banner silently hides.
+     - Shows code, discount label, remaining slots, countdown
+       (days/hours/minutes/seconds) to expiry_date.
+     - Dismissal stored in localStorage for 12h window.
+     - "Grab offer" CTA scrolls to #courses.
+
+  g) src/pages/AdminPage.jsx (new, /admin route)
+     - No token? Shows AdminLogin (password-style token input
+       + optional actor handle).
+     - Authed: list + new/edit/delete/toggle. Refresh button
+       + sign out. Shows audit-worthy actions via confirm
+       dialog on delete.
+
+  h) src/components/admin/
+       AdminLogin.jsx  — token form, probes via "list" call
+                         to validate token before proceeding.
+       CouponForm.jsx  — create/edit. Fixed code is rupees,
+                         percentage 1-100. Rupee inputs stored
+                         as paise on save. datetime-local for
+                         expiry. Code input disabled on edit
+                         (server rejects code change anyway).
+       CouponList.jsx  — table/card hybrid. Shows code, discount,
+                         usage (used_count / max_users), expiry,
+                         status chip, per-row actions (toggle,
+                         edit, delete).
+
+  i) src/App.jsx
+     - /admin route added (wrapped in same AnimatedRoutes
+       transition as the rest).
+
+  j) src/pages/JoinCoursesPage.jsx
+     - CouponPromoBanner slotted above the course card grid.
+
+DEPLOYMENT STEPS (user ko khud run karne hain):
+
+  STEP 1 — Migration:
+    Supabase SQL Editor me supabase/migrations/
+    20260420_coupon_system.sql paste karke run karo.
+
+  STEP 2 — Admin token secret:
+    openssl rand -hex 32   # generate 64-char random hex
+    supabase.exe secrets set ADMIN_API_TOKEN=<hex> \
+      --project-ref orrozpaelhogpqemngfj
+    Is token ko safely save karo (password manager). Login
+    ke waqt paste karoge.
+
+  STEP 3 — Deploy edge functions:
+    supabase.exe functions deploy validate_coupon admin_coupons \
+      create_order verify_payment --no-verify-jwt \
+      --project-ref orrozpaelhogpqemngfj
+    create_order + verify_payment phir se deploy kar rahe
+    hain kyunki unka code change hua hai.
+
+  STEP 4 (optional) — Featured promo banner:
+    Vercel env me VITE_FEATURED_COUPON=FIRST20 set karo (ya
+    jo bhi code featured karna hai). Phir redeploy. Blank/unset
+    = banner hidden.
+
+  STEP 5 — Test flow:
+    a) /admin khol, token paste karo, sign in.
+    b) "New coupon" → code FIRST20, fixed ₹500, max_users 20,
+       expiry = +48h, status active.
+    c) Incognito /join-courses khol → coupon banner dikhe
+       (agar VITE_FEATURED_COUPON=FIRST20).
+    d) Course card → Join Now → form me FIRST20 apply →
+       price breakdown: 2399 → -500 → 1899.
+    e) Razorpay (test/live) se 1899 pay karo → verify ho jaye
+       → /success open ho.
+    f) /admin me wapas list refresh → used_count 0 → 1 ho
+       gaya. Us same email se dubara try karo → "You have
+       already used this coupon" error.
+
+SECURITY INVARIANTS (critical):
+  - ADMIN_API_TOKEN sirf Supabase secrets me hai, repo me
+    nowhere, frontend bundle me nowhere.
+  - RLS enabled + zero policies on coupon tables → anon /
+    authenticated direct queries return empty. Har read/write
+    edge function ke through hi, service role key se.
+  - Discount amount ka backend se confirm hota hai (frontend
+    ki value verify me trust nahi hoti) — verify_payment
+    expected_amount purchase row se leta hai, Razorpay payment
+    amount se match karta hai.
+  - Rate limit: 20 validate / 30 order / 120 admin per min
+    per IP. Enumeration + brute force throttled.
+  - Race-safe reservation (SELECT FOR UPDATE + redemption
+    ledger) — max_users cap under concurrent checkouts bhi
+    respected.
+  - Redemption expires after 30 min if not confirmed → seat
+    released to next buyer. Preview/reserve explicitly skip
+    expired reservations in the cap calc.
+  - Audit log har admin write pe row likhta hai (actor, action,
+    metadata) — forensic trail for coupon changes.
+
+BUILD VERIFY:
+  npm run build → pass
+    dist/index.html                  1.11 kB
+    dist/assets/index-*.css         91.17 kB  (13.50 kB gzip)
+    dist/assets/index-*.js         481.51 kB (148.68 kB gzip)
+  2166 modules transformed, no errors.
+
+FILE MAP (new + modified is session me):
+  supabase/migrations/20260420_coupon_system.sql          (new)
+  supabase/functions/_shared/rateLimit.ts                 (new)
+  supabase/functions/_shared/admin.ts                     (new)
+  supabase/functions/validate_coupon/index.ts             (new)
+  supabase/functions/admin_coupons/index.ts               (new)
+  supabase/functions/create_order/index.ts                (mod)
+  supabase/functions/verify_payment/index.ts              (mod)
+  src/lib/coupon.js                                       (new)
+  src/lib/admin.js                                        (new)
+  src/lib/payment.js                                      (mod)
+  src/components/CouponInput.jsx                          (new)
+  src/components/CouponPromoBanner.jsx                    (new)
+  src/components/ApplyNowModal.jsx                        (mod)
+  src/components/admin/AdminLogin.jsx                     (new)
+  src/components/admin/CouponForm.jsx                     (new)
+  src/components/admin/CouponList.jsx                     (new)
+  src/pages/AdminPage.jsx                                 (new)
+  src/pages/JoinCoursesPage.jsx                           (mod)
+  src/App.jsx                                             (mod)
+
+================================================================
   End of project.txt
 ================================================================

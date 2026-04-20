@@ -9,6 +9,8 @@ import {
 } from '../lib/payment'
 import { launchRazorpayCheckout } from '../lib/razorpay'
 import { isPlaceholderMode } from '../lib/config'
+import { formatRupees } from '../lib/coupon'
+import CouponInput from './CouponInput'
 
 const initialForm = { name: '', email: '', phone: '' }
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -46,8 +48,15 @@ export default function ApplyNowModal({ course, open, onClose }) {
   const [busy, setBusy] = useState(false)
   const [completed, setCompleted] = useState(false)
   const [error, setError] = useState('')
+  const [coupon, setCoupon] = useState(null)
 
   const canSubmit = useMemo(() => validate(form) === '', [form])
+  const placeholderMode = isPlaceholderMode()
+
+  const finalAmount = coupon
+    ? Math.max(course.amount - Number(coupon.discountAmount || 0), 0)
+    : course.amount
+  const discountAmount = coupon ? Number(coupon.discountAmount || 0) : 0
 
   useEffect(() => {
     if (!open) return undefined
@@ -69,6 +78,7 @@ export default function ApplyNowModal({ course, open, onClose }) {
       setBusy(false)
       setCompleted(false)
       setError('')
+      setCoupon(null)
     }
   }, [open])
 
@@ -97,7 +107,7 @@ export default function ApplyNowModal({ course, open, onClose }) {
       phone: form.phone.trim(),
     }
 
-    if (isPlaceholderMode()) {
+    if (placeholderMode) {
       try {
         const purchase = simulatePlaceholderPurchase({
           courseId: course.id,
@@ -113,7 +123,11 @@ export default function ApplyNowModal({ course, open, onClose }) {
     }
 
     try {
-      const order = await createOrder({ courseId: course.id, customer })
+      const order = await createOrder({
+        courseId: course.id,
+        customer,
+        couponCode: coupon?.code || '',
+      })
       await launchRazorpayCheckout({
         order,
         customer,
@@ -135,19 +149,27 @@ export default function ApplyNowModal({ course, open, onClose }) {
         onDismiss: () => setBusy(false),
       })
     } catch (checkoutError) {
-      setError(checkoutError.message || 'Unable to start secure checkout right now.')
+      const message =
+        checkoutError?.message || 'Unable to start secure checkout right now.'
+      // If backend rejected the coupon at reserve-time, drop it so user can retry
+      if (/coupon/i.test(message)) {
+        setCoupon(null)
+      }
+      setError(message)
       setBusy(false)
     }
   }
 
+  const priceToPay = placeholderMode ? course.priceLabel : formatRupees(finalAmount)
+
   const buttonLabel = (() => {
     if (completed) return 'Opening success page...'
     if (busy) {
-      return isPlaceholderMode()
+      return placeholderMode
         ? 'Preparing preview access...'
         : 'Starting secure checkout...'
     }
-    return `Join Now – ${course.priceLabel}`
+    return `Join Now – ${priceToPay}`
   })()
 
   return (
@@ -169,7 +191,7 @@ export default function ApplyNowModal({ course, open, onClose }) {
             exit={reduce ? { opacity: 0 } : { opacity: 0, y: 40, scale: 0.98 }}
             transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
             onClick={(event) => event.stopPropagation()}
-            className="relative w-full max-w-lg overflow-hidden rounded-t-[28px] bg-white shadow-[0_60px_120px_-30px_rgba(15,23,42,0.7)] dark:bg-slate-950 sm:rounded-[28px]"
+            className="relative max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-t-[28px] bg-white shadow-[0_60px_120px_-30px_rgba(15,23,42,0.7)] dark:bg-slate-950 sm:max-h-[90vh] sm:rounded-[28px]"
           >
             <button
               type="button"
@@ -228,6 +250,46 @@ export default function ApplyNowModal({ course, open, onClose }) {
                 />
               </label>
 
+              {!placeholderMode && (
+                <CouponInput
+                  course={course}
+                  customerEmail={form.email}
+                  disabled={busy || completed}
+                  onApplied={(applied) => setCoupon(applied)}
+                  onCleared={() => setCoupon(null)}
+                />
+              )}
+
+              {!placeholderMode && (
+                <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm dark:border-white/10 dark:bg-white/5">
+                  <div className="flex items-center justify-between text-slate-600 dark:text-slate-400">
+                    <span>Original Price</span>
+                    <span
+                      className={
+                        coupon
+                          ? 'line-through decoration-rose-400/70 decoration-2'
+                          : ''
+                      }
+                    >
+                      {formatRupees(course.amount)}
+                    </span>
+                  </div>
+                  {coupon && (
+                    <>
+                      <div className="mt-2 flex items-center justify-between text-emerald-600 dark:text-emerald-300">
+                        <span>Coupon ({coupon.code})</span>
+                        <span>-{formatRupees(discountAmount)}</span>
+                      </div>
+                      <div className="mt-2 h-px bg-slate-200 dark:bg-white/10" />
+                      <div className="mt-2 flex items-center justify-between text-base font-semibold text-slate-950 dark:text-white">
+                        <span>Final Price</span>
+                        <span>{formatRupees(finalAmount)}</span>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+
               {error && (
                 <p className="mt-3 text-sm text-rose-500" role="alert">
                   {error}
@@ -245,7 +307,7 @@ export default function ApplyNowModal({ course, open, onClose }) {
               </motion.button>
 
               <p className="mt-3 text-[12px] leading-5 text-slate-500 dark:text-slate-500">
-                {isPlaceholderMode()
+                {placeholderMode
                   ? 'Preview mode: purchase is simulated. No card is charged.'
                   : 'Payment is processed securely by Razorpay.'}
               </p>

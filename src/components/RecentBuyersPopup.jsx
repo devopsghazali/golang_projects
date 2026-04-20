@@ -64,6 +64,9 @@ export default function RecentBuyersPopup() {
               <span className="font-semibold text-slate-950 dark:text-white">{buyer.name}</span>{' '}
               from {buyer.city} joined{' '}
               <span className="font-semibold text-slate-950 dark:text-white">{buyer.course}</span>
+              {buyer.relativeTime && (
+                <span className="text-slate-500 dark:text-slate-400"> · {buyer.relativeTime}</span>
+              )}
             </p>
           </div>
         </motion.div>

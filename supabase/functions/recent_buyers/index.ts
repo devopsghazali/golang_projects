@@ -1,11 +1,9 @@
 import { corsHeaders, json } from '../_shared/cors.ts'
 import { getServiceSupabase } from '../_shared/supabase.ts'
 
-function maskName(name: string) {
+function cleanName(name: string) {
   if (!name) return 'A learner'
-  const trimmed = name.trim()
-  if (trimmed.length <= 2) return `${trimmed[0] || 'A'}*`
-  return `${trimmed.slice(0, 2)}***`
+  return name.trim().replace(/\s+/g, ' ')
 }
 
 function cityFromPhone(phone: string) {
@@ -42,7 +40,7 @@ Deno.serve(async (request) => {
     }
 
     const buyers = (data || []).map((entry) => ({
-      name: maskName(entry.customer_name || ''),
+      name: cleanName(entry.customer_name || ''),
       city: cityFromPhone(entry.customer_phone || ''),
       course: entry.course_name || 'a course',
       relativeTime: relativeTime(entry.purchased_at),

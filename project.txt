@@ -347,5 +347,31 @@ SESSION — 2026-04-20 (Part H — /dashboard 404 fix + Success copy)
     clean, koi errors nahi
 
 ================================================================
+SESSION — 2026-04-20 (Part I — Coupon "already used" hint)
+================================================================
+
+32. CUSTOMER CONFUSION:
+  - User ne report kiya: naya customer "abhishek"
+    (upscsamjhoconcept@gmail.com) ko FIRST1 apply karte hi
+    "You have already used this coupon." mila.
+  - DB query se pata chala: same email se pehle "dev-sham"
+    naam se FIRST1 se ₹1 pay ho chuka hai (confirmed
+    redemption bd9bd267-db78... at 10:37 UTC).
+  - System correctly block kar raha tha (1-use per email rule)
+    — bug nahi, design.
+
+33. FIX (UX, not logic):
+  - CouponInput.jsx me error message ko friendly banaya —
+    "already used" text detect hone par hint append hota hai:
+      "... Apna naya email + name daalo (same email pe coupon
+       sirf ek baar chalta hai)."
+  - Ab customer ko clear hai kya karna hai (duplicate email
+    change karo) bina support ko msg bheje.
+
+34. BUILD:
+  - npm run build: 2168 modules, 502.11 KB JS (152.54 KB gzip)
+    clean.
+
+================================================================
   End of project.txt  (see projectv2.txt for reference doc)
 ================================================================

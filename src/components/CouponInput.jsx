@@ -43,7 +43,11 @@ export default function CouponInput({
       })
 
       if (!data?.ok) {
-        setError(data?.error || 'This coupon cannot be applied.')
+        const rawError = data?.error || 'This coupon cannot be applied.'
+        const friendly = /already used/i.test(rawError)
+          ? `${rawError} Apna naya email + name daalo (same email pe coupon sirf ek baar chalta hai).`
+          : rawError
+        setError(friendly)
         setApplied(null)
         onCleared?.()
         return

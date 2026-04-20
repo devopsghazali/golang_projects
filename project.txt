@@ -1755,6 +1755,55 @@ GIT:
   from last session). Is session ka commit bhi karke push
   dono ek saath origin/main pe bhejenge.
 
+----------------------------------------------------------------
+POST-PUSH: LIVE RAZORPAY SWITCH (2026-04-20)
+----------------------------------------------------------------
+
+USER ne clarify kiya: "Supabase token bhi aapke paas diya tha"
+— project.txt line 1300 confirm karta hai (ephemeral env var).
+User ne naya token diya (redacted — chat me plaintext share hua,
+user rotate kar sakta hai dashboard se baad me):
+  sbp_***REDACTED***
+
+COMMAND RUN:
+  SUPABASE_ACCESS_TOKEN=sbp_... supabase secrets set \
+    RAZORPAY_KEY_ID=rzp_live_SfF1mWDHWU4zSt \
+    RAZORPAY_KEY_SECRET=Wr60fkI88PyGdYzBtl8K4TCy \
+    --project-ref orrozpaelhogpqemngfj
+  Output: "Finished supabase secrets set."
+
+VERIFICATION:
+  supabase secrets list — RAZORPAY_KEY_ID / KEY_SECRET ka
+  digest test wale se different ho gaya (naya live digest).
+  RAZORPAY_WEBHOOK_SECRET pehle se set hai — webhook same
+  in both modes unless rotated (per .local/razorpay-keys.txt
+  note).
+
+PROPAGATION:
+  Edge functions (create_order, verify_payment,
+  razorpay_webhook) naye secrets agle cold start pe uthayenge
+  (~1 min). Koi redeploy nahi chahiye, sirf Deno.env.get
+  new value return karega.
+
+LOCAL BACKUP:
+  .local/razorpay-keys.txt updated — LIVE now marked ACTIVE,
+  TEST marked paused. Swap-back commands dono direction ke liye
+  saved.
+
+POST-LIVE TEST CHECKLIST (user ko):
+  - Real card/UPI se 1 small purchase karo (sabse sasta course)
+  - Success page pe redirect hona chahiye, Drive link khule
+  - Razorpay dashboard > Payments me live entry dikhe
+  - Agar fail: supabase functions logs create_order se debug
+
+SECURITY NOTES (future improvement — user ka call):
+  - project.txt (committed + public repo) me live keys
+    line 1313-1314 par hain. Git history me permanent hai.
+    Razorpay dashboard > Settings > API Keys > Regenerate
+    karke rotate kar sakte hain jab chaahein.
+  - Supabase access token bhi chat me shared hua — rotate
+    karne ke liye https://supabase.com/dashboard/account/tokens
+
 ================================================================
   End of project.txt
 ================================================================

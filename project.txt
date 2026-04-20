@@ -250,5 +250,51 @@ SESSION — 2026-04-20 (Part F — Proof Strip Swipe Affordance)
   - 2167 modules, 486.32 KB JS (149.79 KB gzip) — clean
 
 ================================================================
+SESSION — 2026-04-20 (Part G — Dashboard Live + Success Card Clarity)
+================================================================
+
+22. REAL TEST PURCHASE — USER NE KAR LIYA:
+  - Coupon FIRST1 use kiya (99% discount), ₹1 pay hua
+  - Razorpay LIVE mode me payment captured
+  - purchase.razorpayPaymentId = pay_SffZvJK9RwHKxg
+  - /success page me Drive button mila, verify workflow end-to-
+    end pass
+  - Means: payment flow + coupon + success redirect — sab live.
+
+23. DASHBOARD DEPLOYED — USER NE KHUD KIYA:
+  - admin_dashboard edge function ab live hai at
+    /functions/v1/admin_dashboard (pehle 404 tha)
+  - Deploy user ne khud `supabase login` ke baad kiya kyunki
+    earlier sbp_bea856... token revoke kar diya tha
+  - /dashboard URL ab admin token se open ho raha hai
+
+24. COUPON ATTRIBUTION TRACKING (confirmation, not new build):
+  - Pehle se hi wired hai poori system:
+    a) migrations/20260420_coupon_source.sql me coupons.source
+       column add ho chuka
+    b) CouponForm me "Source" input + datalist suggestions
+    c) admin_coupons backend source save + audit log karta hai
+    d) admin_dashboard me sourceAttribution + topCoupons
+       (source ke saath) return hota hai
+    e) DashboardPage me "Coupon attribution — kahan se bike?"
+       card + per-coupon chips dikhate hain
+  - Workflow: har influencer/channel ko alag coupon do (code +
+    source tag), /dashboard pe source-wise aur coupon-wise
+    breakdown milta hai — kon sa channel kitna bika
+    revenue-wise dikhta hai.
+
+25. /success PAGE WORDING CLEANUP:
+  - Purana: paragraph tha "Pehle Drive ki poori video dekh lo,
+    phir WhatsApp karo..."
+  - Naya: numbered ordered list — clear 2 steps:
+    Step 1: Google Drive button → poori video + material
+    Step 2: Video khatam ke baad WhatsApp +91 79055 23824
+            (name + payment ID bhejna, mentorship start hogi)
+  - WhatsApp number pe link + underline + emerald accent
+  - URL me PII/Drive link leak pehle hi fix ho chuka tha
+    (commit c60c5f9 — localStorage-only, URL param drop)
+    User ne purane URL pe test kiya isliye confusion hua.
+
+================================================================
   End of project.txt  (see projectv2.txt for reference doc)
 ================================================================

@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { Navigate, useSearchParams } from 'react-router-dom'
+import { Navigate } from 'react-router-dom'
 import { motion } from 'motion/react'
 import { BadgeCheck, ExternalLink, Mail, MessageCircle, PlayCircle } from 'lucide-react'
 import Background from '../components/Background'
@@ -7,27 +7,11 @@ import ThemeToggle from '../components/ThemeToggle'
 import Footer from '../components/Footer'
 
 const SUPPORT_EMAIL = 'kaif829974@gmail.com'
+const SUPPORT_WHATSAPP_NUMBER = '+91 79055 23824'
 const SUPPORT_WHATSAPP = 'https://wa.me/917905523824'
 const storageKey = 'cpamaster-last-purchase'
 
-function decodePurchasePayload(value) {
-  try {
-    const binary = window.atob(value)
-    const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0))
-    return JSON.parse(new TextDecoder().decode(bytes))
-  } catch {
-    return null
-  }
-}
-
-function readVerifiedPurchase(searchParams) {
-  const encoded = searchParams.get('data')
-  if (encoded) {
-    const decoded = decodePurchasePayload(encoded)
-    if (decoded && decoded.status === 'verified' && decoded.razorpayPaymentId) {
-      return decoded
-    }
-  }
+function readVerifiedPurchase() {
   try {
     const raw = localStorage.getItem(storageKey)
     if (!raw) return null
@@ -45,8 +29,7 @@ function readVerifiedPurchase(searchParams) {
 }
 
 export default function PaymentSuccessPage() {
-  const [searchParams] = useSearchParams()
-  const purchase = useMemo(() => readVerifiedPurchase(searchParams), [searchParams])
+  const purchase = useMemo(() => readVerifiedPurchase(), [])
 
   if (!purchase) {
     return <Navigate to="/join-courses" replace />
@@ -85,11 +68,36 @@ export default function PaymentSuccessPage() {
               Your access is ready.
             </p>
 
-            <p className="mt-4 text-[14px] leading-7 text-slate-600 dark:text-slate-400">
-              Open your Google Drive access and complete the material.
-              <br />
-              For mentorship or support, contact us via WhatsApp or Email.
-            </p>
+            <ol className="mt-5 space-y-3 text-[14px] leading-7 text-slate-700 dark:text-slate-300">
+              <li className="flex gap-3">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-900 text-[11px] font-bold text-white dark:bg-white dark:text-slate-950">
+                  1
+                </span>
+                <span>
+                  Neeche diye <strong>Google Drive button</strong> pe click karke
+                  poori video + material complete dekh lo.
+                </span>
+              </li>
+              <li className="flex gap-3">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-[11px] font-bold text-white">
+                  2
+                </span>
+                <span>
+                  Video khatam hone ke baad{' '}
+                  <strong>1-on-1 personal guidance</strong> ke liye mujhe WhatsApp
+                  karo —{' '}
+                  <a
+                    href={SUPPORT_WHATSAPP}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="whitespace-nowrap font-semibold text-emerald-600 underline decoration-emerald-400/60 underline-offset-2 hover:text-emerald-700 dark:text-emerald-300 dark:hover:text-emerald-200"
+                  >
+                    {SUPPORT_WHATSAPP_NUMBER}
+                  </a>
+                  . Name + payment ID bhejna, mentorship turant start hogi.
+                </span>
+              </li>
+            </ol>
 
             <motion.a
               initial={{ opacity: 0, y: 12 }}

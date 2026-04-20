@@ -29,7 +29,7 @@ export default function EarningsTrustCard() {
             <span className="text-gradient-brand">First Day</span>
           </h2>
           <p className="mt-3 max-w-xl text-[14px] leading-7 text-slate-600 dark:text-slate-300 sm:text-[15px]">
-            Finish the setup, launch your first campaign, and start seeing approved conversions from day one — no waiting, no long ramp-up.
+            Finish the setup and start seeing approved conversions from day one — no waiting, no long ramp-up.
           </p>
         </div>
 

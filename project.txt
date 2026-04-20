@@ -189,5 +189,37 @@ SESSION — 2026-04-20 (Part D — Public Repo Security Hardening)
      — tabhi link leak bhi ho jaaye to useless rahega
 
 ================================================================
+SESSION — 2026-04-20 (Part E — Refund Consent + Copy Cleanup)
+================================================================
+
+16. REFUND POLICY CONSENT CHECKBOX:
+  - ApplyNowModal.jsx me payment form ke andar, submit button
+    se theek pehle ek checkbox add kiya
+  - Label (Hinglish): "Maine Refund Policy padh li hai aur
+    main issey sahmat hoon." (link → /join-courses#refund-policy,
+    new tab me khulta hai, RefundPolicySection pe scroll)
+  - State: agreedRefund (default false)
+  - canSubmit memo ab `validate(form) === '' && agreedRefund`
+    check karta hai → jab tak checkbox tick nahi, "Join Now –
+    ₹X,XXX" button disabled (grey, opacity-60, cursor-not-allowed)
+  - Modal band/dubara khulne par agreedRefund reset ho jata hai
+    (setAgreedRefund(false) in the cleanup effect)
+  - Matlab: customer abhi actively refund policy accept karta
+    hai → future me "mujhe pata nahi tha" wala dispute nahi
+
+17. EARNINGS TRUST CARD COPY CLEANUP:
+  - EarningsTrustCard.jsx subtitle me "launch your first
+    campaign" phrase tha — user ne is reference ko remove
+    karne ko kaha (literal button nahi tha, sirf text me
+    "campaign" word reference tha)
+  - Naya subtitle: "Finish the setup and start seeing
+    approved conversions from day one — no waiting, no
+    long ramp-up."
+
+18. BUILD VERIFIED:
+  - npm run build: 2167 modules, 485.19 KB JS (149.55 KB gzip)
+    clean, koi errors nahi
+
+================================================================
   End of project.txt  (see projectv2.txt for reference doc)
 ================================================================

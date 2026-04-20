@@ -49,8 +49,12 @@ export default function ApplyNowModal({ course, open, onClose }) {
   const [completed, setCompleted] = useState(false)
   const [error, setError] = useState('')
   const [coupon, setCoupon] = useState(null)
+  const [agreedRefund, setAgreedRefund] = useState(false)
 
-  const canSubmit = useMemo(() => validate(form) === '', [form])
+  const canSubmit = useMemo(
+    () => validate(form) === '' && agreedRefund,
+    [form, agreedRefund],
+  )
   const placeholderMode = isPlaceholderMode()
 
   const finalAmount = coupon
@@ -79,6 +83,7 @@ export default function ApplyNowModal({ course, open, onClose }) {
       setCompleted(false)
       setError('')
       setCoupon(null)
+      setAgreedRefund(false)
     }
   }, [open])
 
@@ -289,6 +294,28 @@ export default function ApplyNowModal({ course, open, onClose }) {
                   )}
                 </div>
               )}
+
+              <label className="mt-4 flex cursor-pointer items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 transition-colors hover:bg-slate-100 dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:bg-white/10">
+                <input
+                  type="checkbox"
+                  checked={agreedRefund}
+                  onChange={(event) => setAgreedRefund(event.target.checked)}
+                  disabled={busy || completed}
+                  className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer rounded border-slate-300 accent-blue-600 dark:border-white/20"
+                />
+                <span className="leading-6">
+                  Maine{' '}
+                  <a
+                    href="/join-courses#refund-policy"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="font-semibold text-blue-600 underline decoration-blue-400/50 underline-offset-2 hover:text-blue-700 dark:text-blue-300 dark:hover:text-blue-200"
+                  >
+                    Refund Policy
+                  </a>{' '}
+                  padh li hai aur main issey sahmat hoon.
+                </span>
+              </label>
 
               {error && (
                 <p className="mt-3 text-sm text-rose-500" role="alert">

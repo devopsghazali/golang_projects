@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
-import { ChevronLeft, ChevronRight, TrendingUp, X } from 'lucide-react'
+import { ArrowRight, ChevronLeft, ChevronRight, TrendingUp, X } from 'lucide-react'
 import { proofs } from '../data/proofs'
 
 function ProofImage({ src, alt, priority }) {
@@ -32,6 +32,7 @@ export default function HorizontalProofStrip() {
   const [canLeft, setCanLeft] = useState(false)
   const [canRight, setCanRight] = useState(true)
   const [activeIndex, setActiveIndex] = useState(null)
+  const [showSwipeHint, setShowSwipeHint] = useState(true)
 
   useEffect(() => {
     const el = scrollerRef.current
@@ -40,6 +41,7 @@ export default function HorizontalProofStrip() {
       const { scrollLeft, scrollWidth, clientWidth } = el
       setCanLeft(scrollLeft > 4)
       setCanRight(scrollLeft + clientWidth < scrollWidth - 4)
+      if (scrollLeft > 8) setShowSwipeHint(false)
     }
     update()
     el.addEventListener('scroll', update, { passive: true })
@@ -49,6 +51,20 @@ export default function HorizontalProofStrip() {
       window.removeEventListener('resize', update)
     }
   }, [])
+
+  useEffect(() => {
+    if (reduce) return undefined
+    const el = scrollerRef.current
+    if (!el) return undefined
+    if (el.scrollWidth <= el.clientWidth + 4) return undefined
+
+    const t1 = setTimeout(() => el.scrollTo({ left: 70, behavior: 'smooth' }), 1300)
+    const t2 = setTimeout(() => el.scrollTo({ left: 0, behavior: 'smooth' }), 2100)
+    return () => {
+      clearTimeout(t1)
+      clearTimeout(t2)
+    }
+  }, [reduce])
 
   useEffect(() => {
     if (activeIndex === null) return undefined
@@ -148,7 +164,7 @@ export default function HorizontalProofStrip() {
               whileHover={reduce ? undefined : { y: -4, scale: 1.01 }}
               whileTap={reduce ? undefined : { scale: 0.98 }}
               className="group relative shrink-0 snap-start overflow-hidden rounded-[22px] bg-slate-900/5 outline-none ring-1 ring-black/5 transition-shadow hover:shadow-[0_24px_60px_-24px_rgba(15,23,42,0.4)] focus-visible:ring-2 focus-visible:ring-cyan-400/60 dark:bg-slate-900/40 dark:ring-white/10"
-              style={{ width: 'clamp(220px, 68vw, 300px)' }}
+              style={{ width: 'clamp(200px, 56vw, 280px)' }}
               aria-label={`Open ${proof.label}`}
             >
               <div className="aspect-[9/16] w-full">
@@ -165,6 +181,30 @@ export default function HorizontalProofStrip() {
             </motion.button>
           ))}
         </div>
+
+        <AnimatePresence>
+          {showSwipeHint && (
+            <motion.div
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -4 }}
+              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+              className="pointer-events-none mt-3 flex justify-center sm:hidden"
+              aria-hidden="true"
+            >
+              <div className="inline-flex items-center gap-2 rounded-full bg-slate-900/85 px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-white shadow-[0_10px_30px_-12px_rgba(15,23,42,0.5)] backdrop-blur dark:bg-white/10">
+                <span>Swipe</span>
+                <motion.span
+                  animate={reduce ? undefined : { x: [0, 6, 0] }}
+                  transition={reduce ? undefined : { duration: 1.1, repeat: Infinity, ease: 'easeInOut' }}
+                  className="flex"
+                >
+                  <ArrowRight size={14} />
+                </motion.span>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.div>
 
       <AnimatePresence>

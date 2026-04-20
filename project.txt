@@ -221,5 +221,34 @@ SESSION — 2026-04-20 (Part E — Refund Consent + Copy Cleanup)
     clean, koi errors nahi
 
 ================================================================
+SESSION — 2026-04-20 (Part F — Proof Strip Swipe Affordance)
+================================================================
+
+19. PROBLEM: Student Earning Proofs strip mobile pe sirf
+    "one photo" jaisa dikhta tha — next photo ka peek itna
+    halka tha ki user samjhta hi nahi ki aur photos hain.
+    Arrow chevrons mobile pe hidden hain (sm:flex).
+
+20. FIX — 3 cheezein kiye in HorizontalProofStrip.jsx:
+  a) Card width: clamp(220px, 68vw, 300px)
+     → clamp(200px, 56vw, 280px)
+     → 375px phone pe card 210px ≈ next card ka 40%+ peek
+     (pehle sirf 20% peek tha)
+  b) Mount pe auto-nudge animation:
+     - overflow detect hone par, 1.3s baad scroller khud
+       70px right scroll karta hai, phir 0.8s baad wapas 0
+     - reduce-motion preference respected
+     - user ko visually dikhta hai "hey, ye strip scrollable hai"
+  c) Mobile-only "Swipe →" hint chip:
+     - strip ke neeche centered, uppercase tracking, dark pill
+     - ArrowRight icon ke saath x:[0,6,0] infinite bounce
+     - User scroll karte hi (scrollLeft > 8) auto-hide
+       (setShowSwipeHint(false) in scroll handler)
+     - sm:hidden → desktop pe nahi dikhta (waha chevrons hain)
+
+21. BUILD:
+  - 2167 modules, 486.32 KB JS (149.79 KB gzip) — clean
+
+================================================================
   End of project.txt  (see projectv2.txt for reference doc)
 ================================================================

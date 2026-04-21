@@ -4,10 +4,12 @@ import { AnimatePresence, motion } from 'motion/react'
 import { Check, Copy, Sparkles, Tag, X } from 'lucide-react'
 import { fetchBannerConfig, DEFAULT_BANNER } from '../lib/siteConfig'
 
-const SESSION_KEY = 'cpa-exit-offer-shown'
+const SESSION_KEY_MOUSE = 'cpa-exit-offer-mouse'
+const SESSION_KEY_ROUTE = 'cpa-exit-offer-route'
 const TRIGGER_EVENT = 'cpa-exit-offer-trigger'
 const AUTO_DISMISS_MS = 15_000
 const WATCHED_PATH = '/join-courses'
+const HIDDEN_NEXT_PATHS = new Set(['/admin', '/dashboard'])
 
 export default function ExitOfferBanner() {
   const location = useLocation()
@@ -15,7 +17,8 @@ export default function ExitOfferBanner() {
   const [visible, setVisible] = useState(false)
   const [copied, setCopied] = useState(false)
   const [config, setConfig] = useState(DEFAULT_BANNER)
-  const firedRef = useRef(false)
+  const firedMouseRef = useRef(false)
+  const firedRouteRef = useRef(false)
   const dismissTimerRef = useRef(null)
   const prevPathRef = useRef(location.pathname)
 
@@ -31,20 +34,35 @@ export default function ExitOfferBanner() {
 
   useEffect(() => {
     try {
-      if (sessionStorage.getItem(SESSION_KEY) === '1') {
-        firedRef.current = true
+      if (sessionStorage.getItem(SESSION_KEY_MOUSE) === '1') {
+        firedMouseRef.current = true
+      }
+      if (sessionStorage.getItem(SESSION_KEY_ROUTE) === '1') {
+        firedRouteRef.current = true
       }
     } catch {
       // sessionStorage blocked — allow once per mount
     }
   }, [])
 
-  const trigger = () => {
-    if (firedRef.current) return
+  const triggerMouse = () => {
+    if (firedMouseRef.current) return
     if (!config.enabled) return
-    firedRef.current = true
+    firedMouseRef.current = true
     try {
-      sessionStorage.setItem(SESSION_KEY, '1')
+      sessionStorage.setItem(SESSION_KEY_MOUSE, '1')
+    } catch {
+      // ignore
+    }
+    setVisible(true)
+  }
+
+  const triggerRoute = () => {
+    if (firedRouteRef.current) return
+    if (!config.enabled) return
+    firedRouteRef.current = true
+    try {
+      sessionStorage.setItem(SESSION_KEY_ROUTE, '1')
     } catch {
       // ignore
     }
@@ -53,9 +71,9 @@ export default function ExitOfferBanner() {
 
   useEffect(() => {
     const handleMouseLeave = (event) => {
-      if (event.clientY <= 0) trigger()
+      if (event.clientY <= 0) triggerMouse()
     }
-    const handleCustomEvent = () => trigger()
+    const handleCustomEvent = () => triggerMouse()
 
     document.addEventListener('mouseleave', handleMouseLeave)
     window.addEventListener(TRIGGER_EVENT, handleCustomEvent)
@@ -69,8 +87,12 @@ export default function ExitOfferBanner() {
   useEffect(() => {
     const prev = prevPathRef.current
     const next = location.pathname
-    if (prev === WATCHED_PATH && next !== WATCHED_PATH) {
-      trigger()
+    if (
+      prev === WATCHED_PATH &&
+      next !== WATCHED_PATH &&
+      !HIDDEN_NEXT_PATHS.has(next)
+    ) {
+      triggerRoute()
     }
     prevPathRef.current = next
     // eslint-disable-next-line react-hooks/exhaustive-deps

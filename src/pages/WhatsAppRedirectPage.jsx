@@ -38,21 +38,9 @@ export default function WhatsAppRedirectPage({ phoneNumber }) {
             <WhatsAppLogo />
           </span>
 
-          <span className="space-y-3">
-            <span className="block font-display text-3xl font-bold tracking-normal text-slate-950 sm:text-4xl">
-              Chat on WhatsApp
-            </span>
-            <span className="block text-lg font-semibold text-emerald-700">
-              {displayNumber}
-            </span>
-            <span className="block text-sm font-medium text-slate-600 sm:text-base">
-              Click to send: {WHATSAPP_MESSAGE}
-            </span>
-          </span>
-
           <span className="inline-flex min-h-12 w-full max-w-xs items-center justify-center gap-2 rounded-lg bg-[#25D366] px-5 py-3 text-base font-bold text-white shadow-lg shadow-emerald-500/25 transition group-hover:bg-[#1ebe5d]">
             <MessageCircle className="h-5 w-5" aria-hidden="true" />
-            Open WhatsApp
+            Chat on WhatsApp
           </span>
         </a>
       </section>

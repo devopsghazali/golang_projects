@@ -7,8 +7,11 @@ import FreeGuidePage from './pages/FreeGuidePage'
 import PaymentSuccessPage from './pages/PaymentSuccessPage'
 import AdminPage from './pages/AdminPage'
 import DashboardPage from './pages/DashboardPage'
+import WhatsAppRedirectPage from './pages/WhatsAppRedirectPage'
 import ChatBot from './components/ChatBot'
 import ExitOfferBanner from './components/ExitOfferBanner'
+
+const MotionDiv = motion.div
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -40,7 +43,7 @@ function AnimatedRoutes() {
 
   return (
     <AnimatePresence mode="wait">
-      <motion.div
+      <MotionDiv
         key={location.pathname}
         initial="initial"
         animate="animate"
@@ -54,19 +57,30 @@ function AnimatedRoutes() {
           <Route path="/success" element={<PaymentSuccessPage />} />
           <Route path="/admin" element={<AdminPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
+          <Route
+            path="/whatsapp-8299745166"
+            element={<WhatsAppRedirectPage phoneNumber="8299745166" />}
+          />
+          <Route
+            path="/whatsapp-7706904909"
+            element={<WhatsAppRedirectPage phoneNumber="7706904909" />}
+          />
         </Routes>
-      </motion.div>
+      </MotionDiv>
     </AnimatePresence>
   )
 }
 
 export default function App() {
+  const { pathname } = useLocation()
+  const isWhatsAppPage = pathname.startsWith('/whatsapp-')
+
   return (
     <>
       <ScrollToTop />
       <AnimatedRoutes />
-      <ChatBot />
-      <ExitOfferBanner />
+      {!isWhatsAppPage && <ChatBot />}
+      {!isWhatsAppPage && <ExitOfferBanner />}
     </>
   )
 }

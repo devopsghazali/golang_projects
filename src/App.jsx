@@ -58,6 +58,14 @@ function AnimatedRoutes() {
           <Route path="/admin" element={<AdminPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route
+            path="/whatsapp-a"
+            element={<WhatsAppRedirectPage phoneNumber="8299745166" />}
+          />
+          <Route
+            path="/whatsapp-b"
+            element={<WhatsAppRedirectPage phoneNumber="7706904909" />}
+          />
+          <Route
             path="/whatsapp-8299745166"
             element={<WhatsAppRedirectPage phoneNumber="8299745166" />}
           />

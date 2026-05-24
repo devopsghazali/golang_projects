@@ -1,6 +1,6 @@
 import { MessageCircle } from 'lucide-react'
 
-const WHATSAPP_MESSAGE = 'hii ! GIVE ME MORE DETAILS'
+const WHATSAPP_MESSAGE = 'Hi, I want more details.'
 
 function WhatsAppLogo() {
   return (

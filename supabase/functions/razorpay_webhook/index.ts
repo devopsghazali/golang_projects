@@ -24,7 +24,7 @@ Deno.serve(async (request) => {
 
     const event = JSON.parse(rawBody)
     const eventName = `${event?.event || ''}`
-    if (!['payment.captured', 'payment.failed'].includes(eventName)) {
+    if (!['payment.captured', 'payment.failed', 'order.paid'].includes(eventName)) {
       return json({ received: true, skipped: true })
     }
 
@@ -84,7 +84,12 @@ Deno.serve(async (request) => {
 
     const courseId = paymentEntity?.notes?.course_id || existingPurchase.course_id
     const course = courseId ? getCourse(courseId) : undefined
-    const status = eventName === 'payment.captured' ? 'verified' : 'failed'
+    const isPaidEvent =
+      eventName === 'payment.captured' ||
+      eventName === 'order.paid' ||
+      paymentEntity?.status === 'captured' ||
+      orderEntity?.status === 'paid'
+    const status = isPaidEvent ? 'verified' : 'failed'
     const updatePayload: Record<string, unknown> = {
       status,
       razorpay_order_id: orderId,

@@ -23,34 +23,78 @@ Deno.serve(async (request) => {
     }
 
     const event = JSON.parse(rawBody)
+    const eventName = `${event?.event || ''}`
+    if (!['payment.captured', 'payment.failed'].includes(eventName)) {
+      return json({ received: true, skipped: true })
+    }
+
     const paymentEntity = event?.payload?.payment?.entity
     const orderEntity = event?.payload?.order?.entity
-    const purchaseId = orderEntity?.receipt || paymentEntity?.notes?.purchase_id
+    const orderId = paymentEntity?.order_id || orderEntity?.id || null
+    let purchaseId = orderEntity?.receipt || paymentEntity?.notes?.purchase_id || null
+    const supabase = getServiceSupabase()
+
+    let existingPurchase: {
+      id: string
+      course_id: string | null
+      coupon_redemption_id: string | null
+      status: string | null
+    } | null = null
+
+    if (!purchaseId && orderId) {
+      const { data, error } = await supabase
+        .from('course_purchases')
+        .select('id, course_id, coupon_redemption_id, status')
+        .eq('razorpay_order_id', orderId)
+        .maybeSingle()
+
+      if (error) {
+        throw new Error(error.message)
+      }
+
+      existingPurchase = data
+      purchaseId = data?.id || null
+    }
 
     if (!purchaseId) {
       return json({ received: true, skipped: true })
     }
 
-    const courseId = paymentEntity?.notes?.course_id
-    const course = courseId ? getCourse(courseId) : undefined
-    const status =
-      event?.event === 'payment.failed'
-        ? 'failed'
-        : event?.event === 'payment.captured'
-          ? 'captured'
-          : 'processed'
+    if (!existingPurchase) {
+      const { data, error } = await supabase
+        .from('course_purchases')
+        .select('id, course_id, coupon_redemption_id, status')
+        .eq('id', purchaseId)
+        .maybeSingle()
 
-    const supabase = getServiceSupabase()
+      if (error) {
+        throw new Error(error.message)
+      }
 
-    const updatePayload: Record<string, unknown> = {
-      status,
-      razorpay_order_id: paymentEntity?.order_id || orderEntity?.id,
-      razorpay_payment_id: paymentEntity?.id || null,
-      gateway_response: event,
+      existingPurchase = data
     }
 
-    if (status === 'captured') {
+    if (!existingPurchase) {
+      return json({ received: true, skipped: true })
+    }
+
+    if (existingPurchase.status === 'verified' && eventName === 'payment.failed') {
+      return json({ received: true, skipped: true })
+    }
+
+    const courseId = paymentEntity?.notes?.course_id || existingPurchase.course_id
+    const course = courseId ? getCourse(courseId) : undefined
+    const status = eventName === 'payment.captured' ? 'verified' : 'failed'
+    const updatePayload: Record<string, unknown> = {
+      status,
+      razorpay_order_id: orderId,
+      razorpay_payment_id: paymentEntity?.id || null,
+      gateway_response: paymentEntity || event,
+    }
+
+    if (status === 'verified') {
       updatePayload.purchased_at = new Date().toISOString()
+      updatePayload.delivered_at = updatePayload.purchased_at
       if (course?.driveLink) {
         updatePayload.drive_link = course.driveLink
       }
@@ -63,6 +107,19 @@ Deno.serve(async (request) => {
 
     if (error) {
       throw new Error(error.message)
+    }
+
+    if (status === 'verified' && existingPurchase.coupon_redemption_id) {
+      const { error: confirmError } = await supabase.rpc(
+        'confirm_coupon_reservation',
+        {
+          p_redemption_id: existingPurchase.coupon_redemption_id,
+          p_purchase_id: purchaseId,
+        },
+      )
+      if (confirmError) {
+        console.error('Coupon confirm failed:', confirmError.message)
+      }
     }
 
     return json({ received: true })

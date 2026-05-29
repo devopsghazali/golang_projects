@@ -47,7 +47,7 @@ export const links = [
     number: '04',
     title: 'Instagram',
     subtitle: 'Join community',
-    href: 'https://www.instagram.com/the_mkbhai?igsh=MWlkZHNhb2UwMnI0Mg==',
+    href: 'https://www.instagram.com/learnwith.mk?igsh=MWUyM3M2eGM2dXlqag==',
     icon: Camera,
     fill: 'linear-gradient(110deg,#f58529,#dd2a7b 40%,#8134af 70%,#515bd4)',
     iconBg: 'linear-gradient(135deg,#f58529,#dd2a7b 50%,#8134af 80%,#515bd4)',

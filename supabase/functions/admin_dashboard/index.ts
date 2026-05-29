@@ -3,6 +3,8 @@ import { getServiceSupabase } from '../_shared/supabase.ts'
 import { AdminAuthError, assertAdmin } from '../_shared/admin.ts'
 import { checkRateLimit, clientIpFromRequest } from '../_shared/rateLimit.ts'
 
+const paidStatuses = new Set(['verified', 'captured'])
+
 // Admin-protected purchase analytics. Same ADMIN_API_TOKEN as
 // admin_coupons — frontend sends `x-admin-token`.
 
@@ -69,7 +71,7 @@ async function handleSummary(supabase: ReturnType<typeof getServiceSupabase>) {
   if (error) throw new Error(error.message)
 
   const all = rows || []
-  const verified = all.filter((r) => r.status === 'verified')
+  const verified = all.filter((r) => paidStatuses.has(r.status))
 
   const totalRevenuePaise = verified.reduce(
     (sum, r) => sum + (Number(r.amount) || 0),

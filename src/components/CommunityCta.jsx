@@ -30,7 +30,7 @@ const channels = [
   },
   {
     label: 'Follow Instagram',
-    href: 'https://www.instagram.com/the_mkbhai?igsh=MWlkZHNhb2UwMnI0Mg==',
+    href: 'https://www.instagram.com/learnwith.mk?igsh=MWUyM3M2eGM2dXlqag==',
     icon: InstagramGlyph,
     bg: 'linear-gradient(120deg,#f43f5e,#a855f7 55%,#f59e0b)',
   },

@@ -34,6 +34,8 @@ const ANALYTICS_ENDPOINT = { endpoint: 'admin_analytics' }
 const statusStyles = {
   verified:
     'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30',
+  captured:
+    'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30',
   created:
     'bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30',
   failed:
@@ -608,6 +610,7 @@ export default function DashboardPage() {
           >
             <option value="all">All statuses</option>
             <option value="verified">Verified</option>
+            <option value="captured">Captured</option>
             <option value="created">Created</option>
             <option value="failed">Failed</option>
           </select>

@@ -18,7 +18,7 @@ const SUPPORT_EMAIL = 'kaif829974@gmail.com'
 const SUPPORT_WHATSAPP_NUMBER = '+91 79055 23824'
 const SUPPORT_WHATSAPP = 'https://wa.me/917905523824'
 const MASTERCLASS_WHATSAPP_GROUP =
-  'https://chat.whatsapp.com/IWyGJtc47U997DONukzHEO'
+  'https://chat.whatsapp.com/GMrAtIWjl4pDHTDSFCZHUi'
 const MASTERCLASS_TELEGRAM_GROUP = 'https://t.me/+Hd3ryvV4i7M1ZGQ1'
 const storageKey = 'cpamaster-last-purchase'
 

@@ -347,6 +347,15 @@ export default function DashboardPage() {
         setPurchases(listRes?.purchases || [])
         setLeads(leadsRes?.leads || [])
       } catch (err) {
+        if (err?.code === 'UNAUTHENTICATED') {
+          clearAdminCredentials()
+          setAuthed(false)
+          setSummary(null)
+          setPurchases([])
+          setLeads([])
+          setError('')
+          return
+        }
         setError(err?.message || 'Unable to load dashboard.')
       } finally {
         setLoading(false)
@@ -433,11 +442,6 @@ export default function DashboardPage() {
             <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-950 dark:text-white sm:text-3xl">
               Sales Dashboard
             </h1>
-            {!summary && !loading && error && (
-              <p className="mt-2 text-sm font-medium text-slate-500 dark:text-slate-400">
-                Session active hai. Data load retry ke liye Refresh dabao.
-              </p>
-            )}
           </div>
           <div className="flex items-center gap-2">
             <Link

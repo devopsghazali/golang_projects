@@ -16,7 +16,7 @@ const catalog: CourseDefinition[] = [
   },
   {
     id: 'cpa-masterclass',
-    name: 'CPA Income Masterclass',
+    name: 'CPA Income Webinar',
     amount: 2100,
     currency: 'INR',
     driveLink:

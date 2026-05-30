@@ -52,6 +52,7 @@ export default function PaymentSuccessPage() {
   const driveLink = purchase.driveLink
   const isMasterclass =
     purchase.courseId === 'cpa-masterclass' ||
+    `${purchase.courseName || ''}`.toLowerCase().includes('webinar') ||
     `${purchase.courseName || ''}`.toLowerCase().includes('masterclass')
 
   return (

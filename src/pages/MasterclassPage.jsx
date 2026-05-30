@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'motion/react'
 import {
@@ -8,7 +8,6 @@ import {
   Loader2,
   Mail,
   Phone,
-  Play,
 } from 'lucide-react'
 import Background from '../components/Background'
 import ThemeToggle from '../components/ThemeToggle'
@@ -19,10 +18,8 @@ import { launchRazorpayCheckout } from '../lib/razorpay'
 import { isPlaceholderMode } from '../lib/config'
 import { formatRupees } from '../lib/coupon'
 
-const VIDEO_URL =
-  'https://res.cloudinary.com/di6hn9fwh/video/upload/v1776655695/lv_0_20260419215035_lsnfbh.mp4'
-const POSTER_URL =
-  'https://res.cloudinary.com/di6hn9fwh/video/upload/so_1.5,w_1280,q_auto,f_jpg/v1776655695/lv_0_20260419215035_lsnfbh.jpg'
+const VIDEO_EMBED_URL =
+  'https://player.cloudinary.com/embed/?cloud_name=di6hn9fwh&public_id=1.55_second_olwcrf&player[controls]=true&player[autoplay]=false&player[muted]=false'
 
 const initialForm = { name: '', email: '', phone: '' }
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -30,11 +27,7 @@ const phonePattern = /^[+]?\d[\d\s-]{7,15}$/
 const storageKey = 'cpamaster-last-purchase'
 
 function getNextClassTime() {
-  const now = new Date()
-  const next = new Date(now)
-  next.setHours(11, 0, 0, 0)
-  if (next.getTime() <= now.getTime()) next.setDate(next.getDate() + 1)
-  return next
+  return new Date('2026-06-07T09:00:00+05:30')
 }
 
 function formatClassDate(date) {
@@ -125,8 +118,6 @@ function PaymentMethodStrip() {
 export default function MasterclassPage() {
   const navigate = useNavigate()
   const reduce = useReducedMotion()
-  const videoRef = useRef(null)
-  const [playing, setPlaying] = useState(false)
   const [form, setForm] = useState(initialForm)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
@@ -137,10 +128,9 @@ export default function MasterclassPage() {
   useEffect(() => {
     const id = window.setInterval(() => {
       setTick(Date.now())
-      if (target.getTime() <= Date.now()) setTarget(getNextClassTime())
     }, 1000)
     return () => window.clearInterval(id)
-  }, [target])
+  }, [])
 
   const countdown = useMemo(() => {
     void tick
@@ -150,26 +140,10 @@ export default function MasterclassPage() {
   const benefits = [
     'CPA marketing ka complete offer-to-payout roadmap',
     'High-paying USA offers aur niches choose karne ka process',
-    'Instagram Reels, YouTube Shorts aur Pinterest se organic traffic',
-    'Faceless content system: no camera, no face, simple execution',
-    'Beginner mistakes, tracking, and next-step action plan',
+    '0 investment earning proof and practical examples',
+    'Beginner to advance execution system with simple daily action steps',
+    'Beginner mistakes, tracking, and webinar action plan',
   ]
-
-  const handlePlay = () => {
-    setPlaying(true)
-    requestAnimationFrame(() => {
-      const el = videoRef.current
-      if (!el) return
-      el.muted = false
-      const p = el.play()
-      if (p && typeof p.catch === 'function') {
-        p.catch(() => {
-          el.muted = true
-          el.play().catch(() => {})
-        })
-      }
-    })
-  }
 
   const handleChange = (event) => {
     const { name, value } = event.target
@@ -256,63 +230,36 @@ export default function MasterclassPage() {
         >
           <div className="px-5 pb-6 pt-7 sm:px-8 sm:pt-9">
             <h1 className="font-display text-[30px] font-extrabold leading-[1.1] tracking-tight text-slate-950 dark:text-white sm:text-[40px]">
-              <span className="text-blue-600">CPA Income Masterclass:</span>{' '}
-              Beginners ke liye{' '}
+              <span className="bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
+                CPA Income Webinar:
+              </span>{' '}
+              <span className="text-slate-950 dark:text-white">Beginner to Advance</span>{' '}
               <span className="text-emerald-600">Online Income Roadmap</span>
             </h1>
             <p className="mt-4 text-[16px] font-medium leading-7 text-slate-600 dark:text-slate-300">
-              Offer select karna, organic traffic lana, faceless content banana
-              aur first CPA campaign setup karna - step by step.
+              Offer select karna, organic traffic lana aur CPA campaign setup
+              karna - beginner to advance step by step webinar.
             </p>
             <p className="mt-5 flex flex-nowrap items-center gap-2 whitespace-nowrap text-[19px] font-extrabold tracking-tight text-slate-900 dark:text-slate-100 sm:text-2xl">
               <span className="text-slate-950 dark:text-white">Register Now @</span>
               <span className="rounded-xl bg-blue-600 px-3 py-1 text-white shadow-[0_14px_35px_-20px_rgba(37,99,235,0.8)]">
                 {masterclassCourse.priceLabel}
               </span>
-              <span className="hidden text-[15px] font-bold text-slate-400 line-through sm:text-base">
-                ₹499
-              </span>
-              <span className="hidden text-[15px] font-bold text-slate-400 line-through sm:text-base">
-                ₹499
-              </span>
               <span className="text-[15px] font-bold text-slate-400 line-through sm:text-base">
-                &#8377;499
+                &#8377;999
               </span>
             </p>
             <div className="mt-7 overflow-hidden rounded-[18px] border border-slate-100 bg-white shadow-[0_24px_70px_-46px_rgba(15,23,42,0.75)] dark:border-white/10 dark:bg-slate-900">
-                <div className="relative aspect-video bg-slate-950">
-                {!playing && (
-                  <>
-                    <img
-                      src={POSTER_URL}
-                      alt="CPA masterclass video preview"
-                      className="absolute inset-0 h-full w-full object-cover"
-                    />
-                    <div className="absolute inset-0 bg-black/20" />
-                    <button
-                      type="button"
-                      onClick={handlePlay}
-                      aria-label="Play masterclass video"
-                      className="absolute inset-0 flex items-center justify-center"
-                    >
-                      <span className="flex h-16 w-16 items-center justify-center rounded-full bg-black/35 text-white backdrop-blur-sm">
-                        <Play size={34} className="translate-x-[2px]" fill="currentColor" />
-                      </span>
-                    </button>
-                  </>
-                )}
-                {playing && (
-                  <video
-                    ref={videoRef}
-                    src={VIDEO_URL}
-                    poster={POSTER_URL}
-                    className="absolute inset-0 h-full w-full bg-black object-contain"
-                    controls
-                    autoPlay
-                    playsInline
-                    preload="auto"
+              <div className="flex justify-center bg-slate-950 px-3 py-4">
+                <div className="relative aspect-[9/16] w-full max-w-[360px] overflow-hidden rounded-2xl bg-black shadow-[0_18px_60px_-34px_rgba(0,0,0,0.9)]">
+                  <iframe
+                    title="CPA income webinar video"
+                    src={VIDEO_EMBED_URL}
+                    allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
+                    allowFullScreen
+                    className="absolute inset-0 h-full w-full border-0"
                   />
-                )}
+                </div>
               </div>
             </div>
 
@@ -324,7 +271,7 @@ export default function MasterclassPage() {
               className="mt-7 rounded-[20px] bg-white px-4 py-4 shadow-sm ring-1 ring-blue-100 dark:bg-white/[0.04] dark:ring-blue-400/15"
             >
               <h2 className="font-display text-[24px] font-bold tracking-tight text-slate-950 dark:text-white">
-                Masterclass <span className="text-blue-600">Timings</span>
+                Webinar <span className="text-blue-600">Timings</span>
               </h2>
               <div className="mt-4 space-y-3 text-[16px] font-semibold leading-6 text-slate-700 dark:text-slate-300">
                 <div className="flex items-center gap-3">
@@ -333,7 +280,7 @@ export default function MasterclassPage() {
                 </div>
                 <div className="flex items-center gap-3">
                   <Clock3 size={20} className="text-emerald-500" />
-                  11:00 AM IST
+                  09:00 AM IST
                 </div>
               </div>
               <div className="mt-4 grid grid-cols-3 gap-2">
@@ -445,7 +392,7 @@ export default function MasterclassPage() {
               className="mt-8 rounded-[20px] bg-emerald-50 px-4 py-4 ring-1 ring-emerald-100 dark:bg-emerald-500/10 dark:ring-emerald-400/15"
             >
               <h2 className="font-display text-[24px] font-bold leading-snug tracking-tight text-slate-950 dark:text-white">
-                In This Masterclass, You'll Learn the{' '}
+                In This Webinar, You'll Learn the{' '}
                 <span className="text-emerald-600">Exact Roadmap</span>
               </h2>
               <div className="mt-5 space-y-3">

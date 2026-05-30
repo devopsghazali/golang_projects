@@ -1,7 +1,15 @@
 import { useMemo } from 'react'
 import { Navigate } from 'react-router-dom'
 import { motion } from 'motion/react'
-import { BadgeCheck, ExternalLink, Mail, MessageCircle, PlayCircle } from 'lucide-react'
+import {
+  BadgeCheck,
+  ExternalLink,
+  Mail,
+  MessageCircle,
+  PlayCircle,
+  Send,
+  Users,
+} from 'lucide-react'
 import Background from '../components/Background'
 import ThemeToggle from '../components/ThemeToggle'
 import Footer from '../components/Footer'
@@ -9,6 +17,9 @@ import Footer from '../components/Footer'
 const SUPPORT_EMAIL = 'kaif829974@gmail.com'
 const SUPPORT_WHATSAPP_NUMBER = '+91 79055 23824'
 const SUPPORT_WHATSAPP = 'https://wa.me/917905523824'
+const MASTERCLASS_WHATSAPP_GROUP =
+  'https://chat.whatsapp.com/IWyGJtc47U997DONukzHEO'
+const MASTERCLASS_TELEGRAM_GROUP = 'https://t.me/+Hd3ryvV4i7M1ZGQ1'
 const storageKey = 'cpamaster-last-purchase'
 
 function readVerifiedPurchase() {
@@ -18,12 +29,15 @@ function readVerifiedPurchase() {
     const parsed = JSON.parse(raw)
     if (parsed?.status === 'verified' && parsed?.razorpayPaymentId) {
       const createdAt = Date.parse(parsed.createdAt || '')
-      if (Number.isFinite(createdAt) && Date.now() - createdAt < 1000 * 60 * 60 * 24) {
+      if (
+        Number.isFinite(createdAt) &&
+        Date.now() - createdAt < 1000 * 60 * 60 * 24
+      ) {
         return parsed
       }
     }
   } catch {
-    /* noop */
+    // noop
   }
   return null
 }
@@ -36,6 +50,9 @@ export default function PaymentSuccessPage() {
   }
 
   const driveLink = purchase.driveLink
+  const isMasterclass =
+    purchase.courseId === 'cpa-masterclass' ||
+    `${purchase.courseName || ''}`.toLowerCase().includes('masterclass')
 
   return (
     <>
@@ -55,7 +72,11 @@ export default function PaymentSuccessPage() {
             <motion.div
               initial={{ opacity: 0, scale: 0.7 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.15, duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+              transition={{
+                delay: 0.15,
+                duration: 0.55,
+                ease: [0.22, 1, 0.36, 1],
+              }}
               className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-400 via-cyan-400 to-blue-500 text-slate-950 shadow-[0_24px_60px_-24px_rgba(16,185,129,0.65)]"
             >
               <BadgeCheck size={28} />
@@ -65,7 +86,7 @@ export default function PaymentSuccessPage() {
               Payment Successful
             </h1>
             <p className="mt-2 text-lg font-medium text-slate-700 dark:text-slate-300">
-              Your access is ready.
+              {isMasterclass ? 'Your group access is ready.' : 'Your access is ready.'}
             </p>
 
             <ol className="mt-5 space-y-3 text-[14px] leading-7 text-slate-700 dark:text-slate-300">
@@ -73,48 +94,100 @@ export default function PaymentSuccessPage() {
                 <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-900 text-[11px] font-bold text-white dark:bg-white dark:text-slate-950">
                   1
                 </span>
-                <span>
-                  Neeche diye <strong>Google Drive button</strong> pe click karke
-                  poori video + material complete dekh lo.
-                </span>
+                {isMasterclass ? (
+                  <span>
+                    Payment ke baad neeche diye <strong>Telegram channel</strong>{' '}
+                    ko join kar lo.
+                  </span>
+                ) : (
+                  <span>
+                    Neeche diye <strong>Google Drive button</strong> pe click karke
+                    poori video + material complete dekh lo.
+                  </span>
+                )}
               </li>
               <li className="flex gap-3">
                 <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-[11px] font-bold text-white">
                   2
                 </span>
-                <span>
-                  Video khatam hone ke baad{' '}
-                  <strong>1-on-1 personal guidance</strong> ke liye mujhe WhatsApp
-                  karo —{' '}
-                  <a
-                    href={SUPPORT_WHATSAPP}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="whitespace-nowrap font-semibold text-emerald-600 underline decoration-emerald-400/60 underline-offset-2 hover:text-emerald-700 dark:text-emerald-300 dark:hover:text-emerald-200"
-                  >
-                    {SUPPORT_WHATSAPP_NUMBER}
-                  </a>
-                  .
-                  <br />
-                  Apna <strong>Name + Payment Screenshot</strong> bhejna,
-                  mentorship turant start hogi.
-                </span>
+                {isMasterclass ? (
+                  <span>
+                    Webinar jab hoga to link Telegram channel par diya jayega.
+                    Webinar date bhi channel par hi milegi.
+                  </span>
+                ) : (
+                  <span>
+                    Video khatam hone ke baad{' '}
+                    <strong>1-on-1 personal guidance</strong> ke liye mujhe WhatsApp
+                    karo -{' '}
+                    <a
+                      href={SUPPORT_WHATSAPP}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="whitespace-nowrap font-semibold text-emerald-600 underline decoration-emerald-400/60 underline-offset-2 hover:text-emerald-700 dark:text-emerald-300 dark:hover:text-emerald-200"
+                    >
+                      {SUPPORT_WHATSAPP_NUMBER}
+                    </a>
+                    .
+                    <br />
+                    Apna <strong>Name + Payment Screenshot</strong> bhejna,
+                    mentorship turant start hogi.
+                  </span>
+                )}
               </li>
             </ol>
 
-            <motion.a
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-              href={driveLink}
-              target="_blank"
-              rel="noreferrer"
-              className="mt-7 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-950 px-5 py-4 text-[15px] font-semibold text-white shadow-[0_24px_60px_-24px_rgba(15,23,42,0.8)] transition-transform duration-300 hover:-translate-y-0.5 dark:bg-white dark:text-slate-950 dark:shadow-[0_24px_60px_-24px_rgba(255,255,255,0.25)]"
-            >
-              <PlayCircle size={18} />
-              Open Google Drive Access
-              <ExternalLink size={14} />
-            </motion.a>
+            {isMasterclass ? (
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{
+                  delay: 0.3,
+                  duration: 0.5,
+                  ease: [0.22, 1, 0.36, 1],
+                }}
+                className="mt-7 grid gap-3 sm:grid-cols-2"
+              >
+                <a
+                  href={MASTERCLASS_WHATSAPP_GROUP}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-500 px-5 py-4 text-[15px] font-semibold text-white shadow-[0_24px_60px_-24px_rgba(16,185,129,0.7)] transition-transform duration-300 hover:-translate-y-0.5"
+                >
+                  <Users size={18} />
+                  Join WhatsApp Group
+                  <ExternalLink size={14} />
+                </a>
+                <a
+                  href={MASTERCLASS_TELEGRAM_GROUP}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-blue-500 px-5 py-4 text-[15px] font-semibold text-white shadow-[0_24px_60px_-24px_rgba(59,130,246,0.7)] transition-transform duration-300 hover:-translate-y-0.5"
+                >
+                  <Send size={18} />
+                  Join Telegram Channel
+                  <ExternalLink size={14} />
+                </a>
+              </motion.div>
+            ) : (
+              <motion.a
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{
+                  delay: 0.3,
+                  duration: 0.5,
+                  ease: [0.22, 1, 0.36, 1],
+                }}
+                href={driveLink}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-7 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-950 px-5 py-4 text-[15px] font-semibold text-white shadow-[0_24px_60px_-24px_rgba(15,23,42,0.8)] transition-transform duration-300 hover:-translate-y-0.5 dark:bg-white dark:text-slate-950 dark:shadow-[0_24px_60px_-24px_rgba(255,255,255,0.25)]"
+              >
+                <PlayCircle size={18} />
+                Open Google Drive Access
+                <ExternalLink size={14} />
+              </motion.a>
+            )}
 
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
               <a

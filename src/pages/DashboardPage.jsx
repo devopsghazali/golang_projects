@@ -313,6 +313,7 @@ export default function DashboardPage() {
   const [authed, setAuthed] = useState(() => Boolean(getAdminToken()))
   const [summary, setSummary] = useState(null)
   const [purchases, setPurchases] = useState([])
+  const [leads, setLeads] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
@@ -326,7 +327,7 @@ export default function DashboardPage() {
       setLoading(true)
       setError('')
       try {
-        const [summaryRes, listRes] = await Promise.all([
+        const [summaryRes, listRes, leadsRes] = await Promise.all([
           adminRequest('summary', {}, DASHBOARD_ENDPOINT),
           adminRequest(
             'list_purchases',
@@ -337,9 +338,18 @@ export default function DashboardPage() {
             },
             DASHBOARD_ENDPOINT,
           ),
+          adminRequest(
+            'list_leads',
+            {
+              limit: 200,
+              search: filters?.search ?? '',
+            },
+            DASHBOARD_ENDPOINT,
+          ),
         ])
         setSummary(summaryRes)
         setPurchases(listRes?.purchases || [])
+        setLeads(leadsRes?.leads || [])
       } catch (err) {
         if (err?.code === 'UNAUTHENTICATED') {
           clearAdminCredentials()
@@ -385,6 +395,7 @@ export default function DashboardPage() {
     setAuthed(false)
     setSummary(null)
     setPurchases([])
+    setLeads([])
     setAnalytics(null)
   }
 
@@ -498,9 +509,9 @@ export default function DashboardPage() {
               />
               <StatCard
                 icon={Users}
-                label="Conversion"
-                value={`${summary.totals?.conversionPercent || 0}%`}
-                sub={`${summary.totals?.verified || 0} of ${summary.totals?.attempts || 0} attempts`}
+                label="Leads"
+                value={(summary.totals?.leads || 0).toLocaleString()}
+                sub={`${summary.totals?.masterclassLeads || 0} masterclass registrations`}
                 tone="amber"
               />
             </div>
@@ -586,6 +597,87 @@ export default function DashboardPage() {
           loading={analyticsLoading}
           error={analyticsError}
         />
+
+        <section className="mt-6 overflow-hidden rounded-3xl border border-emerald-500/20 bg-gradient-to-br from-emerald-500/5 to-cyan-500/5 dark:border-emerald-400/20">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200/70 px-5 py-4 dark:border-white/10">
+            <div>
+              <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-700 dark:text-emerald-300">
+                <Users size={14} />
+                <span>Leads</span>
+              </div>
+              <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+                Form submit hote hi Supabase mein lead save hoti hai. Payment
+                complete hone par same row verified ban jaati hai.
+              </p>
+            </div>
+            <div className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-[12px] font-semibold text-emerald-700 dark:text-emerald-300">
+              {leads.length} latest leads
+            </div>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[900px] text-left text-sm">
+              <thead className="bg-white/60 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-600 dark:bg-white/5 dark:text-slate-400">
+                <tr>
+                  <th className="px-4 py-3">Time</th>
+                  <th className="px-4 py-3">Lead</th>
+                  <th className="px-4 py-3">Contact</th>
+                  <th className="px-4 py-3">Source</th>
+                  <th className="px-4 py-3">Interest</th>
+                  <th className="px-4 py-3">Order / Payment</th>
+                  <th className="px-4 py-3">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {leads.length === 0 && !loading && (
+                  <tr>
+                    <td
+                      colSpan={7}
+                      className="px-4 py-8 text-center text-sm text-slate-500 dark:text-slate-400"
+                    >
+                      No leads found yet.
+                    </td>
+                  </tr>
+                )}
+                {leads.map((row) => (
+                  <tr
+                    key={row.id}
+                    className="border-t border-slate-100 bg-white/50 transition-colors hover:bg-white dark:border-white/5 dark:bg-slate-950/30 dark:hover:bg-white/5"
+                  >
+                    <td className="px-4 py-3 align-top text-[12px] text-slate-600 dark:text-slate-400">
+                      {formatDateTime(row.createdAt)}
+                    </td>
+                    <td className="px-4 py-3 align-top">
+                      <div className="font-semibold text-slate-900 dark:text-white">
+                        {row.customerName || '—'}
+                      </div>
+                      <div className="text-[11px] text-slate-500">
+                        {formatRupees(row.amount || 0)}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 align-top text-[12px] text-slate-700 dark:text-slate-300">
+                      <div className="break-all">{row.customerEmail || '—'}</div>
+                      <div className="text-slate-500">{row.customerPhone || '—'}</div>
+                    </td>
+                    <td className="px-4 py-3 align-top">
+                      <span className="rounded-full border border-cyan-500/25 bg-cyan-500/10 px-2 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-cyan-700 dark:text-cyan-300">
+                        {row.source || 'website'}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 align-top text-[12px] text-slate-700 dark:text-slate-300">
+                      <div className="font-semibold">{row.courseName || '—'}</div>
+                      <div className="mt-0.5 text-slate-500">{row.notes || ''}</div>
+                    </td>
+                    <td className="px-4 py-3 align-top font-mono text-[11px] text-slate-600 dark:text-slate-400">
+                      <div className="break-all">{row.razorpayOrderId || '—'}</div>
+                      <div className="mt-1 break-all">{row.razorpayPaymentId || ''}</div>
+                    </td>
+                    <td className="px-4 py-3 align-top">{statusChip(row.status)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
 
         <form
           onSubmit={handleSearchSubmit}

@@ -127,6 +127,28 @@ Deno.serve(async (request) => {
       }
     }
 
+    const leadPayload: Record<string, unknown> = {
+      status,
+      razorpay_order_id: orderId,
+      razorpay_payment_id: paymentEntity?.id || null,
+      notes:
+        status === 'verified'
+          ? 'Payment verified from Razorpay webhook.'
+          : 'Payment failed from Razorpay webhook.',
+    }
+    if (status === 'verified') {
+      leadPayload.paid_at = updatePayload.purchased_at || new Date().toISOString()
+    }
+
+    const { error: leadUpdateError } = await supabase
+      .from('masterclass_leads')
+      .update(leadPayload)
+      .eq('purchase_id', purchaseId)
+
+    if (leadUpdateError) {
+      console.error('Masterclass lead update failed:', leadUpdateError.message)
+    }
+
     return json({ received: true })
   } catch (error) {
     return json(

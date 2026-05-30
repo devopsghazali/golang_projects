@@ -35,6 +35,35 @@ export const courses = [
 
 export const primaryCourse = courses[0]
 
+export const masterclassCourse = {
+  id: 'cpa-masterclass',
+  name: 'CPA Income Masterclass',
+  badge: '90 Min Live Training',
+  amount: 2100,
+  priceLabel: '\u20b921',
+  currency: 'INR',
+  highlight: 'Live roadmap to start CPA marketing with organic traffic and USA offers.',
+  summary:
+    'A focused beginner masterclass showing how CPA marketing works, how to pick offers, and how to build a simple traffic system without paid ads.',
+  learningPoints: [
+    'CPA Marketing full process from offer to payout',
+    'How to find high-paying USA offers',
+    'Organic traffic with Instagram, YouTube Shorts, and Pinterest',
+    'How to create simple videos without showing your face',
+    'Beginner roadmap for first campaign setup',
+    'Common mistakes that waste time and traffic',
+  ],
+  benefits: [
+    'Live training access after verified payment',
+    'WhatsApp updates for joining details',
+    'Beginner-friendly CPA roadmap',
+    'Next step guidance for the full course',
+  ],
+  fill: 'linear-gradient(120deg,#2563eb,#06b6d4 55%,#10b981)',
+  iconBg: 'linear-gradient(135deg,#1d4ed8,#0891b2 60%,#059669)',
+  glow: 'rgba(6,182,212,0.28)',
+}
+
 export function getCourseById(courseId) {
-  return courses.find((course) => course.id === courseId)
+  return [masterclassCourse, ...courses].find((course) => course.id === courseId)
 }

@@ -80,6 +80,7 @@ Deno.serve(async (request) => {
       return json({ error: 'Final amount is invalid. Coupon cannot be applied.' }, 400)
     }
 
+    const isMasterclass = course.id === 'cpa-masterclass'
     const purchaseInsert = {
       course_id: course.id,
       course_name: course.name,
@@ -93,11 +94,13 @@ Deno.serve(async (request) => {
       coupon_redemption_id: reservationId,
       currency: 'INR',
       status: 'created',
-      source: 'website',
+      source: isMasterclass ? 'masterclass' : 'website',
       gateway_response: {},
       notes: appliedCouponCode
         ? `Order created with coupon ${appliedCouponCode}.`
-        : 'Order created from website checkout.',
+        : isMasterclass
+          ? 'Lead captured from masterclass registration page.'
+          : 'Order created from website checkout.',
     }
 
     const { data: createdPurchase, error: insertError } = await supabase
@@ -131,6 +134,28 @@ Deno.serve(async (request) => {
 
     if (updateError) {
       throw new Error(updateError.message)
+    }
+
+    if (isMasterclass) {
+      const { error: leadInsertError } = await supabase
+        .from('masterclass_leads')
+        .insert({
+          purchase_id: createdPurchase.id,
+          course_id: course.id,
+          course_name: course.name,
+          customer_name: customerName,
+          customer_email: customerEmail,
+          customer_phone: customerPhone,
+          amount: finalAmount,
+          source: 'masterclass',
+          status: 'created',
+          razorpay_order_id: order.id,
+          notes: 'Lead captured when Razorpay checkout opened.',
+        })
+
+      if (leadInsertError) {
+        console.error('Masterclass lead insert failed:', leadInsertError.message)
+      }
     }
 
     return json({

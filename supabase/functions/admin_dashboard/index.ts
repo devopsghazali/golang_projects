@@ -48,6 +48,8 @@ Deno.serve(async (request) => {
         return await handleSummary(supabase)
       case 'list_purchases':
         return await handleListPurchases(supabase, payload)
+      case 'list_leads':
+        return await handleListLeads(supabase, payload)
       default:
         return json({ error: `Unknown action: ${action}` }, 400)
     }
@@ -63,15 +65,22 @@ async function handleSummary(supabase: ReturnType<typeof getServiceSupabase>) {
   const { data: rows, error } = await supabase
     .from('course_purchases')
     .select(
-      'id, status, amount, coupon_code, purchased_at, created_at, gateway_response',
+      'id, status, course_id, amount, coupon_code, purchased_at, created_at, gateway_response',
     )
     .order('created_at', { ascending: false })
     .limit(5000)
 
   if (error) throw new Error(error.message)
 
+  const { count: leadCount, error: leadCountError } = await supabase
+    .from('masterclass_leads')
+    .select('id', { count: 'exact', head: true })
+
+  if (leadCountError) throw new Error(leadCountError.message)
+
   const all = rows || []
   const verified = all.filter((r) => paidStatuses.has(r.status))
+  const leads = all.filter((r) => !paidStatuses.has(r.status))
 
   const totalRevenuePaise = verified.reduce(
     (sum, r) => sum + (Number(r.amount) || 0),
@@ -152,6 +161,8 @@ async function handleSummary(supabase: ReturnType<typeof getServiceSupabase>) {
     ok: true,
     totals: {
       attempts: all.length,
+      leads: leads.length,
+      masterclassLeads: leadCount || 0,
       verified: verified.length,
       revenuePaise: totalRevenuePaise,
       conversionPercent: conversionRate,
@@ -252,4 +263,53 @@ async function handleListPurchases(
   })
 
   return json({ ok: true, purchases, count: purchases.length, limit })
+}
+
+async function handleListLeads(
+  supabase: ReturnType<typeof getServiceSupabase>,
+  payload: Record<string, unknown>,
+) {
+  const limitInput = Number(payload?.limit)
+  const limit = Number.isFinite(limitInput)
+    ? Math.max(1, Math.min(500, Math.trunc(limitInput)))
+    : 200
+  const search = `${payload?.search || ''}`.trim().toLowerCase()
+
+  let query = supabase
+    .from('masterclass_leads')
+    .select(
+      'id, purchase_id, status, course_id, course_name, customer_name, customer_email, customer_phone, amount, source, notes, razorpay_order_id, razorpay_payment_id, paid_at, created_at',
+    )
+    .order('created_at', { ascending: false })
+    .limit(limit)
+
+  if (search) {
+    const like = `%${search}%`
+    query = query.or(
+      `customer_name.ilike.${like},customer_email.ilike.${like},customer_phone.ilike.${like},razorpay_payment_id.ilike.${like},razorpay_order_id.ilike.${like}`,
+    )
+  }
+
+  const { data, error } = await query
+  if (error) throw new Error(error.message)
+
+  const leads = (data || []).map((r) => ({
+    id: r.id,
+    purchaseId: r.purchase_id,
+    status: r.status,
+    courseId: r.course_id,
+    courseName: r.course_name,
+    customerName: r.customer_name,
+    customerEmail: r.customer_email,
+    customerPhone: r.customer_phone,
+    amount: r.amount,
+    source: r.source,
+    notes: r.notes,
+    razorpayOrderId: r.razorpay_order_id,
+    razorpayPaymentId: r.razorpay_payment_id,
+    paidAt: r.paid_at,
+    createdAt: r.created_at,
+  }))
+
+  return json({ ok: true, leads, count: leads.length, limit })
 }

@@ -14,6 +14,16 @@ const catalog: CourseDefinition[] = [
     currency: 'INR',
     driveLink: Deno.env.get('CPA_MASTERY_DRIVE_URL') || '',
   },
+  {
+    id: 'cpa-masterclass',
+    name: 'CPA Income Masterclass',
+    amount: 2100,
+    currency: 'INR',
+    driveLink:
+      Deno.env.get('CPA_MASTERCLASS_DRIVE_URL') ||
+      Deno.env.get('CPA_MASTERY_DRIVE_URL') ||
+      '',
+  },
 ]
 
 export function getCourse(courseId: string) {

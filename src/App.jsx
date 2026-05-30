@@ -5,6 +5,7 @@ import LandingPage from './pages/LandingPage'
 import JoinCoursesPage from './pages/JoinCoursesPage'
 import FreeGuidePage from './pages/FreeGuidePage'
 import PaymentSuccessPage from './pages/PaymentSuccessPage'
+import MasterclassPage from './pages/MasterclassPage'
 import AdminPage from './pages/AdminPage'
 import DashboardPage from './pages/DashboardPage'
 import WhatsAppRedirectPage from './pages/WhatsAppRedirectPage'
@@ -54,6 +55,7 @@ function AnimatedRoutes() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/join-courses" element={<JoinCoursesPage />} />
           <Route path="/free-guide" element={<FreeGuidePage />} />
+          <Route path="/masterclass" element={<MasterclassPage />} />
           <Route path="/success" element={<PaymentSuccessPage />} />
           <Route path="/admin" element={<AdminPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
@@ -82,13 +84,14 @@ function AnimatedRoutes() {
 export default function App() {
   const { pathname } = useLocation()
   const isWhatsAppPage = pathname.startsWith('/whatsapp-')
+  const isMasterclassPage = pathname === '/masterclass'
 
   return (
     <>
       <ScrollToTop />
       <AnimatedRoutes />
-      {!isWhatsAppPage && <ChatBot />}
-      {!isWhatsAppPage && <ExitOfferBanner />}
+      {!isWhatsAppPage && !isMasterclassPage && <ChatBot />}
+      {!isWhatsAppPage && !isMasterclassPage && <ExitOfferBanner />}
     </>
   )
 }

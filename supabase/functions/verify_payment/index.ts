@@ -114,7 +114,7 @@ Deno.serve(async (request) => {
       })
       .eq('id', purchaseId)
       .select(
-        'id, course_name, customer_name, customer_email, razorpay_order_id, razorpay_payment_id, drive_link, amount, original_amount, discount_amount, coupon_code',
+        'id, course_id, course_name, customer_name, customer_email, razorpay_order_id, razorpay_payment_id, drive_link, amount, original_amount, discount_amount, coupon_code',
       )
       .single()
 
@@ -135,10 +135,28 @@ Deno.serve(async (request) => {
       }
     }
 
+    if (course.id === 'cpa-masterclass') {
+      const { error: leadUpdateError } = await supabase
+        .from('masterclass_leads')
+        .update({
+          status: 'verified',
+          razorpay_order_id: razorpayOrderId,
+          razorpay_payment_id: razorpayPaymentId,
+          paid_at: now,
+          notes: 'Payment verified and group access unlocked.',
+        })
+        .eq('purchase_id', purchaseId)
+
+      if (leadUpdateError) {
+        console.error('Masterclass lead update failed:', leadUpdateError.message)
+      }
+    }
+
     return json({
       success: true,
       purchase: {
         id: updatedPurchase.id,
+        courseId: updatedPurchase.course_id,
         courseName: updatedPurchase.course_name,
         customerName: updatedPurchase.customer_name,
         customerEmail: updatedPurchase.customer_email,

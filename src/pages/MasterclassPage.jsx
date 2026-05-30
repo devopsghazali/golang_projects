@@ -20,6 +20,8 @@ import { formatRupees } from '../lib/coupon'
 
 const VIDEO_EMBED_URL =
   'https://player.cloudinary.com/embed/?cloud_name=di6hn9fwh&public_id=1.55_second_olwcrf&player[controls]=true&player[autoplay]=false&player[muted]=false'
+const VIDEO_POSTER_URL =
+  'https://res.cloudinary.com/di6hn9fwh/video/upload/so_1.5,w_720,q_auto,f_jpg/1.55_second_olwcrf.jpg'
 
 const initialForm = { name: '', email: '', phone: '' }
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -121,6 +123,7 @@ export default function MasterclassPage() {
   const [form, setForm] = useState(initialForm)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  const [videoReady, setVideoReady] = useState(false)
   const [target, setTarget] = useState(() => getNextClassTime())
   const [tick, setTick] = useState(() => Date.now())
   const placeholderMode = isPlaceholderMode()
@@ -252,12 +255,31 @@ export default function MasterclassPage() {
             <div className="mt-7 overflow-hidden rounded-[18px] border border-slate-100 bg-white shadow-[0_24px_70px_-46px_rgba(15,23,42,0.75)] dark:border-white/10 dark:bg-slate-900">
               <div className="flex justify-center bg-slate-950 px-3 py-4">
                 <div className="relative aspect-[9/16] w-full max-w-[360px] overflow-hidden rounded-2xl bg-black shadow-[0_18px_60px_-34px_rgba(0,0,0,0.9)]">
+                  <div
+                    className={`absolute inset-0 bg-slate-900 transition-opacity duration-500 ${
+                      videoReady ? 'opacity-0' : 'opacity-100'
+                    }`}
+                  >
+                    <img
+                      src={VIDEO_POSTER_URL}
+                      alt="CPA income webinar video preview"
+                      className="h-full w-full object-cover"
+                      loading="eager"
+                    />
+                    <div className="absolute inset-0 bg-black/20" />
+                    <div className="absolute inset-x-4 bottom-4 rounded-2xl bg-black/55 px-4 py-3 text-center text-sm font-bold text-white backdrop-blur-sm">
+                      Video loading...
+                    </div>
+                  </div>
                   <iframe
                     title="CPA income webinar video"
                     src={VIDEO_EMBED_URL}
                     allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
                     allowFullScreen
-                    className="absolute inset-0 h-full w-full border-0"
+                    onLoad={() => setVideoReady(true)}
+                    className={`absolute inset-0 h-full w-full border-0 transition-opacity duration-500 ${
+                      videoReady ? 'opacity-100' : 'opacity-0'
+                    }`}
                   />
                 </div>
               </div>

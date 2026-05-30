@@ -170,6 +170,8 @@ function ListCard({ icon: Icon, title, items, valueKey = 'visitors', labelKey })
 }
 
 function AnalyticsSection({ analytics, loading, error }) {
+  if (!analytics && !loading && !error) return null
+
   return (
     <section className="mt-6 rounded-3xl border border-purple-500/20 bg-gradient-to-br from-purple-500/5 to-pink-500/5 p-5 dark:border-purple-400/20">
       <div className="flex items-center justify-between gap-3">
@@ -185,12 +187,6 @@ function AnalyticsSection({ analytics, loading, error }) {
       {error && (
         <p className="mt-3 rounded-2xl border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-600 dark:text-rose-300">
           {error}
-        </p>
-      )}
-
-      {!analytics && !error && !loading && (
-        <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">
-          No analytics data yet. Refresh me click karo.
         </p>
       )}
 
@@ -371,7 +367,8 @@ export default function DashboardPage() {
       const data = await adminRequest('summary', {}, ANALYTICS_ENDPOINT)
       setAnalytics(data)
     } catch (err) {
-      setAnalyticsError(err?.message || 'Unable to load PostHog analytics.')
+      setAnalytics(null)
+      setAnalyticsError('')
     } finally {
       setAnalyticsLoading(false)
     }

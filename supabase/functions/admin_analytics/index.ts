@@ -8,6 +8,26 @@ import { checkRateLimit, clientIpFromRequest } from '../_shared/rateLimit.ts'
 
 const POSTHOG_HOST = 'https://us.posthog.com'
 
+function emptyAnalytics(reason?: string) {
+  return json({
+    summary: {
+      todayVisitors: 0,
+      yesterdayVisitors: 0,
+      weekVisitors: 0,
+      weekCouponApplies: 0,
+      weekPayments: 0,
+      weekPageviews: 0,
+    },
+    trend: [],
+    cities: [],
+    devices: [],
+    sources: [],
+    generatedAt: new Date().toISOString(),
+    configured: false,
+    reason: reason || 'Analytics is not configured yet.',
+  })
+}
+
 async function hogql(query: string, apiKey: string, projectId: string) {
   const response = await fetch(
     `${POSTHOG_HOST}/api/projects/${projectId}/query/`,
@@ -53,10 +73,7 @@ Deno.serve(async (request) => {
   const apiKey = Deno.env.get('POSTHOG_API_KEY') || ''
   const projectId = Deno.env.get('POSTHOG_PROJECT_ID') || ''
   if (!apiKey || !projectId) {
-    return json(
-      { error: 'PostHog credentials not configured on server.' },
-      500,
-    )
+    return emptyAnalytics('PostHog credentials not configured on server.')
   }
 
   try {
@@ -164,14 +181,7 @@ Deno.serve(async (request) => {
       generatedAt: new Date().toISOString(),
     })
   } catch (error) {
-    return json(
-      {
-        error:
-          error instanceof Error
-            ? error.message
-            : 'Failed to fetch PostHog analytics.',
-      },
-      502,
-    )
+    console.error('PostHog analytics unavailable:', error)
+    return emptyAnalytics('PostHog analytics unavailable.')
   }
 })

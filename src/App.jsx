@@ -85,13 +85,14 @@ export default function App() {
   const { pathname } = useLocation()
   const isWhatsAppPage = pathname.startsWith('/whatsapp-')
   const isMasterclassPage = pathname === '/masterclass'
+  const isAdminSurface = pathname === '/admin' || pathname === '/dashboard'
 
   return (
     <>
       <ScrollToTop />
       <AnimatedRoutes />
-      {!isWhatsAppPage && !isMasterclassPage && <ChatBot />}
-      {!isWhatsAppPage && !isMasterclassPage && <ExitOfferBanner />}
+      {!isWhatsAppPage && !isMasterclassPage && !isAdminSurface && <ChatBot />}
+      {!isWhatsAppPage && !isMasterclassPage && !isAdminSurface && <ExitOfferBanner />}
     </>
   )
 }

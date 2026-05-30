@@ -371,11 +371,6 @@ export default function DashboardPage() {
       const data = await adminRequest('summary', {}, ANALYTICS_ENDPOINT)
       setAnalytics(data)
     } catch (err) {
-      if (err?.code === 'UNAUTHENTICATED') {
-        clearAdminCredentials()
-        setAuthed(false)
-        return
-      }
       setAnalyticsError(err?.message || 'Unable to load PostHog analytics.')
     } finally {
       setAnalyticsLoading(false)
